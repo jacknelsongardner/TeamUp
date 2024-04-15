@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>User Page</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: rgb(249, 218, 84);
+    }
+
+    .user-logo {
+      cursor: pointer;
+    }
+
+    .split-screen {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left-side {
+      background-color: rgb(198, 42, 42);
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+    }
+
+    .right-side {
+      background-color: rgb(52, 52, 230);
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+    }
+
+    .buy-connects {
+      background-color: rgb(249, 218, 84);
+      justify-content: center;
+      align-items: center;
+      min-height: 250px;
+    }
+
+    .logo {
+  transform: translateY(-60%);
+  left: 45%;
+  position: absolute;
+}
+
+  </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container d-flex justify-content-between align-items-center" style="height: 50px">
+            <a href="settings.html">
+                <img src="user.webp" alt="" height="40px">
+            </a>
+    
+            <div class="text-center flex-grow-1"> <!-- Updated class -->
+                <a class="logo" href="#">
+                    <img src="logo.png" alt="Logo" height="30">
+                </a>
+            </div>
+    
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">Sign Out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    
+    
+    
+    
+    <div class="row">
+        
+        <div class="col-lg-6 left-side text-center">
+            <div>
+                <img src="manageicon.png" alt="" style="width: 230px; margin-top: 45px;">
+            </div>
+            <div>
+                <a href="manageteams.html">
+                    <button type="button" class="btn btn-danger" style="margin-top: 10px">Manage Teams</button>
+                </a>
+            </div>
+        </div>
+    
+        <div class="col-lg-6 right-side text-center">
+            <div>
+                <img src="applyicon.png" alt="" style="width: 265px; margin-top: 45px;">
+            </div>
+            <div>
+                <a href="manageapplications.html">
+                    <button type="button" class="btn btn-primary" style="margin-top: 10px">Manage Applications</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 buy-connects text-center">
+            <div>
+                <img src="connect.png" alt="" style="width: 180px; margin-top: 25px;">
+            </div>
+            <div>
+                <a href="buycoins.html">
+                    <button type="button" class="btn btn-warning" style="margin-top: 10px">Buy Connects</button>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+<!-- Cartoon old man image in the middle -->
+
+
+<script>
+  function redirectToManagerPage() {
+    // Redirect to manager page (replace 'manager.html' with your actual manager page)
+    window.location.href = 'manager.html';
+  }
+
+  function redirectToTeammatePage() {
+    // Redirect to teammate page (replace 'teammate.html' with your actual teammate page)
+    window.location.href = 'teammate.html';
+  }
+</script>
+
+</body>
+</html>

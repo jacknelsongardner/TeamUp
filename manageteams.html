@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <style>
+    body {
+        background-color: rgb(206, 64, 64);
+    }
+
+    .list-item {
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .list-item:hover {
+      background-color: #f8f9fa; /* Add a subtle hover effect */
+    }
+
+    .list-item.selected {
+      background-color: #cce5ff; /* Change the background color for selected items */
+    }
+
+    .edit-delete-buttons {
+      display: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+
+    .logo {
+  transform: translateY(-60%);
+  left: 45%;
+  position: absolute;
+}
+  </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container d-flex justify-content-between align-items-center" style="height: 50px">
+            <a href="settings.html">
+                <img src="user.webp" alt="" height="40px">
+            </a>
+    
+            <div class="text-center flex-grow-1"> <!-- Updated class -->
+                <a class="logo" href="#">
+                    <img src="logo.png" alt="Logo" height="30">
+                </a>
+            </div>
+    
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">Sign Out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+<div class="container mt-4" style="margin-left: 150px; margin-right: 150px;">
+    <div class="row">
+
+
+        <div class="col-md-4 text-center">
+            <div>
+                <h2 style="color: white;">Manage Roles</h2>
+
+            </div>
+
+            <div>
+                <img src="manageicon.png" alt="" style="width: 230px; margin-top: 45px;">
+            </div>
+
+            <div>
+                <p style="text-align: center; font-size: 15px; color: white; margin-top: 15px;">Welcome to the PowerUp Recruitment Page! This tool is designed to help you find individuals with the skills you need.</p>
+            </div>
+
+            <div>
+                <a href="swiperecruit.html">
+                    <button type="button" class="btn btn-primary" style="margin-top: 10px">Recruit Roles</button>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-8" style="justify-content: center ;">
+            
+            <div class="row">
+                <div class="col-md-6" style="justify-content: left ;">
+                    <a href="userdash.html">
+                        <button class="btn btn-light">Back</button>
+                    </a>
+
+                    <button class="btn btn-primary">Create Role</button>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="container mt-4">
+                    <ul class="list-group">
+
+                      <li class="list-group-item list-item">
+                        Role 1
+                        <div class="edit-delete-buttons">
+                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="btn btn-sm btn-danger delete-btn" >Delete</button>
+                        </div>
+                      </li>
+
+                      <li class="list-group-item list-item">
+                        Role 2
+                        <div class="edit-delete-buttons">
+                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="btn btn-sm btn-danger delete-btn" >Delete</button>
+                        </div>
+                      </li>
+
+                    </ul>
+                </div>
+            </div>
+            
+        </div>
+
+
+    </div>
+    
+</div>
+
+
+
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit List Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Customize this part with form elements for editing list items -->
+        <label for="editItem">Edit Item:</label>
+        <input type="text" class="form-control" id="editItem">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $('.list-item').click(function () {
+      // Deselect all other items
+      $('.list-item').removeClass('selected');
+      
+      // Select the clicked item
+      $(this).addClass('selected');
+    });
+
+    $('.list-item').hover(
+      function () {
+        $(this).find('.edit-delete-buttons').show();
+      },
+      function () {
+        $(this).find('.edit-delete-buttons').hide();
+      }
+    );
+
+    $('.delete-btn').click(function () {
+      $(this).closest('.list-item').remove();
+    });
+
+    $('.edit-btn').click(function () {
+      // Handle edit button click, if needed
+    });
+  });
+</script>
+
+</body>
+</html>

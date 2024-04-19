@@ -57,6 +57,7 @@ function createTables() {
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
         );`,
+
         `CREATE TABLE IF NOT EXISTS recruited (
             JOBID TEXT,
             APPID TEXT,
@@ -64,6 +65,7 @@ function createTables() {
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
         );`,
+
         `CREATE TABLE IF NOT EXISTS contact (
             USERID TEXT,
             INFO TEXT,
@@ -80,6 +82,82 @@ function createTables() {
     });
 }
 
+async function AddUser(username, passkey, name)
+{
+    try {
+        // Hash password
+        const hashedPassword = await bcrypt.hash(passkey, 10);
+
+        // Insert user into database
+        const sql = `INSERT INTO users (USERID, PASS_KEY, NUM_TOKENS, NAME) VALUES (?, ?, ?, ?)`;
+        db.run(sql, [username, hashedPassword, 0, name], function(err) {
+            if (err) {
+                console.error('Error inserting user into database', err.message);
+                res.status(500).send('Could not register user. Might be a duplicate USERID.');
+            } else {
+                console.log(`A new row has been inserted with rowid ${this.lastID}`);
+                res.redirect('/login.html'); // Redirect to login page upon successful signup
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+}
+
+async function LoginUser(username, passkey)
+{
+    try {
+        const sql = `SELECT PASS_KEY FROM users WHERE USERID = ?`;
+        db.get(sql, [username], (err, row) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).send('Server error.');
+            }
+            if (row) {
+                bcrypt.compare(passkey, row.PASS_KEY, (err, result) => {
+                    if (result) {
+                        // Passwords match
+                        res.redirect('/userdash.html'); // Redirect to user dashboard
+                    } else {
+                        // Passwords don't match
+                        res.send('Invalid email or password.'); // Handle invalid login
+                    }
+                });
+            } else {
+                // No user found with that email
+                res.send('Invalid email or password.'); // Handle invalid login
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+}
+
+
+async function AddUserTokens(username, tokens)
+{
+    try {
+        
+        // Insert user into database
+        const updateUserSQL = `UPDATE users SET NUM_TOKENS = ? WHERE USERID = ? `;
+        db.run(sql, [tokens, username], function(err) {
+            if (err) {
+                console.error('Error inserting tokens into user', err.message);
+                res.status(500).send('Could not add tokens to user. Might be nonexistent USERID.');
+            } else {
+                console.log(`A new row has been inserted with rowid ${this.lastID}`);
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+}
+
+
+
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname)));
 
@@ -87,18 +165,22 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
   });
 
-  app.get('/manageteams', (req, res) => {
+app.get('/manageteams', (req, res) => {
     res.sendFile(path.join(__dirname, 'manageteams.html'));
-  });
-  
-  app.get('/manageapplications', (req, res) => {
-    res.sendFile(path.join(__dirname, 'manageapplications.html'));
-  });
-  
-  app.get('/buycoins', (req, res) => {
-    res.sendFile(path.join(__dirname, 'buycoins.html'));
-  });
+});
 
+app.get('/manageapplications', (req, res) => {
+    res.sendFile(path.join(__dirname, 'manageapplications.html'));
+});
+
+app.get('/buycoins', (req, res) => {
+res.sendFile(path.join(__dirname, 'buycoins.html'));
+});
+
+app.post('/manageapplications', async (req,res) => 
+{
+    
+})
 
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'
@@ -157,3 +239,11 @@ app.post('/login', (req, res) => {
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
+
+
+
+
+
+
+
+

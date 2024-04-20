@@ -439,6 +439,117 @@ app.get('/application', async (req, res) => {
     }
 });
 
+app.get('/randomapplication', async (req, res) => {
+    const { categoryID } = req.query;
+
+    // Basic validation
+    if (!categoryID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get a random application with the given category ID
+        const sql = `
+            SELECT a.APPID, a.description 
+            FROM applications AS a 
+            INNER JOIN app_category AS ac ON a.APPID = ac.APPID 
+            WHERE ac.APP_CAT_ID = ? 
+            ORDER BY RANDOM() 
+            LIMIT 1
+        `;
+        db.get(sql, [categoryID], (err, row) => {
+            if (err) {
+                console.error('Error retrieving random application:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            if (!row) {
+                return res.status(404).json({ error: 'No application found with the given category ID' });
+            }
+
+            // Construct JSON object with the random application
+            const application = { APPID: row.APPID, description: row.description };
+
+            // Send the JSON object as response
+            res.json({ application });
+        });
+    } catch (err) {
+        console.error('Error retrieving random application:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+app.get('/randomteam', async (req, res) => {
+    try {
+        // Query the database to get a random team
+        const sql = `
+            SELECT * 
+            FROM teams 
+            ORDER BY RANDOM() 
+            LIMIT 1
+        `;
+        db.get(sql, [], (err, row) => {
+            if (err) {
+                console.error('Error retrieving random team:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            if (!row) {
+                return res.status(404).json({ error: 'No teams found' });
+            }
+
+            // Construct JSON object with the random team
+            const team = { TEAM_ID: row.TEAM_ID, name: row.name };
+
+            // Send the JSON object as response
+            res.json({ team });
+        });
+    } catch (err) {
+        console.error('Error retrieving random team:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/randomapplication', async (req, res) => {
+    const { categoryID } = req.query;
+
+    // Basic validation
+    if (!categoryID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get a random application with the given category ID
+        const sql = `
+            SELECT a.APPID, a.description 
+            FROM applications AS a 
+            INNER JOIN app_category AS ac ON a.APPID = ac.APPID 
+            WHERE ac.APP_CAT_ID = ? 
+            ORDER BY RANDOM() 
+            LIMIT 1
+        `;
+        db.get(sql, [categoryID], (err, row) => {
+            if (err) {
+                console.error('Error retrieving random application:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            if (!row) {
+                return res.status(404).json({ error: 'No application found with the given category ID' });
+            }
+
+            // Construct JSON object with the random application
+            const application = { APPID: row.APPID, description: row.description };
+
+            // Send the JSON object as response
+            res.json({ application });
+        });
+    } catch (err) {
+        console.error('Error retrieving random application:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 
 app.post('/signup', async (req, res) => {

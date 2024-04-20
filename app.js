@@ -306,22 +306,67 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
   });
 
-app.get('/manageteams', (req, res) => {
-    res.sendFile(path.join(__dirname, 'manageteams.html'));
-});
-
-app.get('/manageapplications', (req, res) => {
-    res.sendFile(path.join(__dirname, 'manageapplications.html'));
-});
-
 app.get('/buycoins', (req, res) => {
 res.sendFile(path.join(__dirname, 'buycoins.html'));
 });
 
-app.post('/manageapplications', async (req,res) => 
-{
-    
-})
+app.get('/getuserapplications', async (req, res) => {
+    const { USERID } = req.query;
+
+    // Basic validation
+    if (!USERID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get applications of the user
+        const sql = `SELECT * FROM applications WHERE USERID = ?`;
+        db.all(sql, [USERID], (err, rows) => {
+            if (err) {
+                console.error('Error retrieving applications:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            // Construct JSON object with applications
+            const applications = rows.map(row => ({ APPID: row.APPID, description: row.description }));
+
+            // Send the JSON object as response
+            res.json({ applications });
+        });
+    } catch (err) {
+        console.error('Error retrieving applications:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/getuserteams', async (req, res) => {
+    const { USERID } = req.query;
+
+    // Basic validation
+    if (!USERID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get teams created by the user
+        const sql = `SELECT * FROM teams WHERE CREATOR_ID = ?`;
+        db.all(sql, [USERID], (err, rows) => {
+            if (err) {
+                console.error('Error retrieving user teams:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            // Construct JSON object with user's teams
+            const teams = rows.map(row => ({ TEAM_ID: row.TEAM_ID, name: row.name }));
+
+            // Send the JSON object as response
+            res.json({ teams });
+        });
+    } catch (err) {
+        console.error('Error retrieving user teams:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'

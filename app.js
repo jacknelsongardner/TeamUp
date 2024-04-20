@@ -368,6 +368,79 @@ app.get('/getuserteams', async (req, res) => {
     }
 });
 
+app.get('/team', async (req, res) => {
+    const { USERID, TEAM_ID } = req.query;
+
+    // Basic validation
+    if (!USERID || !TEAM_ID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get team information for the user and team
+        const sql = `SELECT * FROM teams WHERE CREATOR_ID = ? AND TEAM_ID = ?`;
+        db.get(sql, [USERID, TEAM_ID], (err, row) => {
+            if (err) {
+                console.error('Error retrieving user team:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            if (!row) {
+                return res.status(404).json({ error: 'Team not found for the user' });
+            }
+
+            // Construct JSON object with user's team
+            const team = { TEAM_ID: row.TEAM_ID, name: row.name };
+
+            // Send the JSON object as response
+            res.json({ team });
+        });
+    } catch (err) {
+        console.error('Error retrieving user team:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/application', async (req, res) => {
+    const { USERID, TEAM_ID } = req.query;
+
+    // Basic validation
+    if (!USERID || !TEAM_ID) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    try {
+        // Query the database to get applications for the user and team
+        const sql = `
+            SELECT a.APPID, a.description, ac.APP_CAT_ID 
+            FROM applications AS a 
+            LEFT JOIN app_category AS ac ON a.APPID = ac.APPID 
+            WHERE a.USERID = ? AND a.TEAM_ID = ?
+        `;
+        db.all(sql, [USERID, TEAM_ID], (err, rows) => {
+            if (err) {
+                console.error('Error retrieving team user applications:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            // Construct JSON object with user's applications for the team
+            const applications = rows.map(row => ({
+                APPID: row.APPID,
+                description: row.description,
+                category: row.APP_CAT_ID
+            }));
+
+            // Send the JSON object as response
+            res.json({ applications });
+        });
+    } catch (err) {
+        console.error('Error retrieving team user applications:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'
 

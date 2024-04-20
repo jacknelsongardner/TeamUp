@@ -233,6 +233,71 @@ app.post('/createrole', async (req, res) => {
     }
 });
 
+// Endpoint to delete an application
+app.post('/deleteapplication', async (req, res) => {
+    const { APPID } = req.body;
+
+    // Basic validation
+    if (!APPID) {
+        return res.status(400).send('Invalid input');
+    }
+
+    try {
+        // Begin transaction
+        await db.beginTransaction();
+
+        // Delete application from 'applications' table
+        const deleteApplicationSql = `DELETE FROM applications WHERE APPID = ?`;
+        await db.run(deleteApplicationSql, [APPID]);
+
+        // Delete associated entries from 'apply' table
+        const deleteApplySql = `DELETE FROM apply WHERE APPID = ?`;
+        await db.run(deleteApplySql, [APPID]);
+
+        // Commit transaction
+        await db.commit();
+
+        console.log('Application deleted successfully');
+        res.status(200).send('Application deleted successfully');
+    } catch (err) {
+        console.error('Error deleting application:', err);
+        await db.rollback();
+        res.status(500).send('Server error');
+    }
+});
+
+// Method to delete a role (job posting)
+app.post('/deleterole', async (req, res) => {
+    const { JOBID } = req.body;
+
+    // Basic validation
+    if (!JOBID) {
+        return res.status(400).send('Invalid input');
+    }
+
+    try {
+        // Begin transaction
+        await db.beginTransaction();
+
+        // Delete job posting from 'job_postings' table
+        const deleteJobPostingSql = `DELETE FROM job_postings WHERE JOBID = ?`;
+        await db.run(deleteJobPostingSql, [JOBID]);
+
+        // Delete associated entries from 'apply' table
+        const deleteApplySql = `DELETE FROM apply WHERE JOBID = ?`;
+        await db.run(deleteApplySql, [JOBID]);
+
+        // Commit transaction
+        await db.commit();
+
+        console.log('Role (job posting) deleted successfully');
+        res.status(200).send('Role (job posting) deleted successfully');
+    } catch (err) {
+        console.error('Error deleting role (job posting):', err);
+        await db.rollback();
+        res.status(500).send('Server error');
+    }
+});
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname)));

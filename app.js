@@ -66,6 +66,7 @@ function createTables() {
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
         );`,
+
         `CREATE TABLE IF NOT EXISTS recruited (
             JOBID TEXT,
             APPID TEXT,
@@ -73,6 +74,7 @@ function createTables() {
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
         );`,
+
         `CREATE TABLE IF NOT EXISTS contact (
             USERID TEXT,
             INFO TEXT,
@@ -105,18 +107,22 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
   });
 
-  app.get('/manageteams', (req, res) => {
+app.get('/manageteams', (req, res) => {
     res.sendFile(path.join(__dirname, 'manageteams.html'));
-  });
-  
-  app.get('/manageapplications', (req, res) => {
-    res.sendFile(path.join(__dirname, 'manageapplications.html'));
-  });
-  
-  app.get('/buycoins', (req, res) => {
-    res.sendFile(path.join(__dirname, 'buycoins.html'));
-  });
+});
 
+app.get('/manageapplications', (req, res) => {
+    res.sendFile(path.join(__dirname, 'manageapplications.html'));
+});
+
+app.get('/buycoins', (req, res) => {
+res.sendFile(path.join(__dirname, 'buycoins.html'));
+});
+
+app.post('/manageapplications', async (req,res) => 
+{
+    
+})
 
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'
@@ -202,3 +208,11 @@ app.post('/buycoins', (req, res) => {
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
+
+
+
+
+
+
+
+

@@ -639,6 +639,25 @@ app.post('/buycoins', (req, res) => {
     });
 });
 
+app.get('/getCoins', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).send("Not authorized");
+    }
+
+    const sql = 'SELECT NUM_TOKENS FROM users WHERE USERID = ?';
+    db.get(sql, [req.session.userId], (err, row) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send('Error fetching coins');
+        }
+        if (row) {
+            res.json({ coins: row.NUM_TOKENS });
+        } else {
+            res.status(404).send('User not found');
+        }
+    });
+});
+
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });

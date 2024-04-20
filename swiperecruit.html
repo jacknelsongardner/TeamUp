@@ -26,6 +26,14 @@
                     </li>
                 </ul>
             </div>
+            <div>
+                <span id="coinCount" style="color: white; margin-right: 20px;">Coins: 0</span>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">Sign Out</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -159,6 +167,15 @@
             background-color: #343a40;
         }
     </style>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/getCoins')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('coinCount').textContent = `Coins: ${data.coins}`;
+        })
+        .catch(error => console.error('Error fetching coin data:', error));
+    });
+</script>
 </body>
 </html>

@@ -96,10 +96,10 @@
             <div class="row">
                 <div class="col-md-6" style="justify-content: left ;">
                     <a href="userdash.html">
-                        <button class="btn btn-light">Back</button>
+                        <button  class="btn btn-light">Back</button>
                     </a>
 
-                    <button class="btn btn-primary">Create Role</button>
+                    <button class="createRoleModal btn btn-primary">Create Role</button>
                 </div>
             </div>
             
@@ -110,14 +110,14 @@
                       <li class="list-group-item list-item">
                         Application 1
                         <div class="edit-delete-buttons">
-                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="editRoleModal btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
                           <button class="btn btn-sm btn-danger delete-btn" >Delete</button>                        </div>
                       </li>
 
                       <li class="list-group-item list-item">
                         Application 2
                         <div class="edit-delete-buttons">
-                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="editRoleModal btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
                           <button class="btn btn-sm btn-danger delete-btn" >Delete</button>
                         </div>
                       </li>
@@ -134,27 +134,47 @@
     
 </div>
 
-
-
-
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+<!-- Create Role Modal -->
+<div class="modal fade" id="createRoleModal" tabindex="-1" role="dialog" aria-labelledby="createRoleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">Edit List Item</h5>
+        <h5 class="modal-title" id="createRoleModalLabel">Create New Role</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-        <!-- Customize this part with form elements for editing list items -->
-        <label for="editItem">Edit Item:</label>
-        <input type="text" class="form-control" id="editItem">
+        <!-- Customize this part with form elements for creating a new role -->
+        <label for="newRoleName">Role Name:</label>
+        <input type="text" class="form-control" id="newRoleName">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-primary">Create Role</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editRoleModalLabel">Edit Role</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Customize this part with form elements for editing the role -->
+        <label for="editRoleName">New Role Name:</label>
+        <input type="text" class="form-control" id="editRoleName">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save Changes</button>
       </div>
     </div>
   </div>
@@ -186,8 +206,22 @@
     $('.edit-btn').click(function () {
       // Handle edit button click, if needed
     });
+
+    // Show create role modal when the "Create Role" button is clicked
+    $('.createRoleBtn').click(function() {
+      $('.createRoleModal').modal('show');
+    });
+
+    // Show edit modal when the "Edit" button is clicked
+    $('.edit-btn').click(function() {
+      $('.editRoleModal').modal('show');
+    });
   });
 </script>
+
+
+
+
 
 </body>
 </html>

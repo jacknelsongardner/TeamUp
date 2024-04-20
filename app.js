@@ -52,13 +52,15 @@ function createTables() {
         `CREATE TABLE IF NOT EXISTS app_category (
             APP_CAT_ID TEXT PRIMARY KEY,
             APPID TEXT,
-            FOREIGN KEY (APPID) REFERENCES applications(APPID)
+            FOREIGN KEY (APPID) REFERENCES applications(APPID),
+            FOREIGN KEY (APP_CAT_ID) REFERENCES category(CAT_NAME)
         );`,
 
         `CREATE TABLE IF NOT EXISTS job_category (
             JOB_CAT_ID TEXT PRIMARY KEY,
             JOBID TEXT,
-            FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
+            FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID),
+            FOREIGN KEY (JOB_CAT_ID) REFERENCES category(CAT_NAME)
         );`,
 
         `CREATE TABLE IF NOT EXISTS apply (
@@ -81,7 +83,11 @@ function createTables() {
             USERID TEXT,
             INFO TEXT,
             FOREIGN KEY (USERID) REFERENCES users(USERID)
-        );`
+        );`,
+
+        'CREATE TABLE IF NOT EXISTS category (CAT_NAME TEXT PRIMARY KEY);',
+
+        "INSERT OR IGNORE INTO category (CAT_NAME) VALUES ('Admin'), ('Manager'), ('Employee'), ('Webdeveloper'), ('GameDeveloper');",
     ];
 
     tableCreations.forEach((query) => {

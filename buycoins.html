@@ -22,15 +22,13 @@
 </head>
 <body>
 
-
-
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container d-flex justify-content-between align-items-center" style="height: 50px">
             <a href="settings.html">
                 <img src="user.webp" alt="" height="40px">
             </a>
     
-            <div class="text-center flex-grow-1"> <!-- Updated class -->
+            <div class="text-center flex-grow-1">
                 <a class="logo" href="#">
                     <img src="logo.png" alt="Logo" height="30">
                 </a>
@@ -46,8 +44,6 @@
         </div>
     </nav>
 
-
-
 <div class="container payment-container">
   
     <div class="row">
@@ -58,35 +54,34 @@
         </div>
     </div>
   
-  
     <h2 class="text-center">Buy Connects</h2>
   
-  <form id="paymentForm">
-    <div class="form-group">
-      <label for="cardNumber">Credit Card Number</label>
-      <input type="text" class="form-control" id="cardNumber" placeholder="Enter your card number" required>
-    </div>
+    <form id="paymentForm">
+      <div class="form-group">
+        <label for="cardNumber">Credit Card Number</label>
+        <input type="text" class="form-control" id="cardNumber" placeholder="Enter your card number" required>
+      </div>
 
-    <div class="form-group">
-      <label for="coinSelect">Select Coins to Buy</label>
-      <select class="form-control" id="coinSelect" required>
-        <option value="100">100 Coins</option>
-        <option value="500">500 Coins</option>
-        <option value="1000">1000 Coins</option>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="coinSelect">Select Coins to Buy</label>
+        <select class="form-control" id="coinSelect" required>
+          <option value="100">100 Coins</option>
+          <option value="500">500 Coins</option>
+          <option value="1000">1000 Coins</option>
+        </select>
+      </div>
 
-    <div class="form-group">
-      <button type="button" class="btn btn-primary btn-block" onclick="calculateTotal()">Calculate Total</button>
-    </div>
+      <div class="form-group">
+        <button type="button" class="btn btn-primary btn-block" onclick="calculateTotal()">Calculate Total</button>
+      </div>
 
-    <div class="form-group">
-      <label for="totalAmount">Total Amount</label>
-      <input type="text" class="form-control" id="totalAmount" readonly>
-    </div>
+      <div class="form-group">
+        <label for="totalAmount">Total Amount</label>
+        <input type="text" class="form-control" id="totalAmount" readonly>
+      </div>
 
-    <button type="submit" class="btn btn-success btn-block">Make Payment</button>
-  </form>
+      <button type="submit" class="btn btn-success btn-block">Make Payment</button>
+    </form>
 </div>
 
 <!-- Bootstrap JS and jQuery (required for Bootstrap) -->
@@ -95,11 +90,33 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
+  function validateCardNumber(number) {
+    const regex = new RegExp("^[0-9]{16}$");
+    if (!regex.test(number))
+        return false;
+
+    return luhnCheck(number);
+  }
+
+  function luhnCheck(val) {
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = val.length - 1; i >= 0; i--) {
+      let digit = parseInt(val.charAt(i));
+
+      if (shouldDouble) {
+        if ((digit *= 2) > 9) digit -= 9;
+      }
+
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+    return (sum % 10) == 0;
+  }
+
   function calculateTotal() {
     const coinSelect = document.getElementById('coinSelect');
     const totalAmount = document.getElementById('totalAmount');
-    
-    // Replace this with your actual coin value logic
     const coinValue = parseInt(coinSelect.value);
 
     if (!isNaN(coinValue)) {
@@ -109,11 +126,30 @@
     }
   }
 
-  // Add real payment handling logic here if needed
-
-  document.getElementById('paymentForm').addEventListener('submit', function (event) {
+  document.getElementById('paymentForm').addEventListener('submit', async function (event) {
     event.preventDefault();
-    alert('Payment not implemented for this example.');
+    const cardNumber = document.getElementById('cardNumber').value;
+    if (!validateCardNumber(cardNumber)) {
+        alert('Invalid Credit Card Number');
+        return;
+    }
+    const coins = parseInt(document.getElementById('coinSelect').value);
+    console.log('Sending coins:', coins);
+
+    try {
+        const response = await fetch('/buycoins', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ coins: coins })
+        });
+        const result = await response.text();
+        alert(result);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error making the payment.');
+    }
   });
 </script>
 

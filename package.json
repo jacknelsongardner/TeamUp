@@ -2,9 +2,10 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "express": "^4.19.2",
+    "express-session": "^1.18.0",
     "sqlite3": "^5.1.7"
   },
-  "name": "mockupwebsite",
+  "name": "q",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -13,5 +14,9 @@
   "author": "",
   "license": "ISC",
   "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "d"
+  },
   "description": ""
 }

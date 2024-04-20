@@ -3,12 +3,21 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
-
+const session = require('express-session');
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public')); // Serve static files from 'public' directory
+app.use(bodyParser.json()); // For parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); 
+
+app.use(session({
+    secret: 'your_secret_key', // This is a secret key to sign the session cookie.
+    resave: false, // Avoids resaving session if unmodified.
+    saveUninitialized: false, // Doesn't create a session until something is stored.
+    cookie: { secure: false } // For development, set secure to true when using HTTPS.
+}));
 
 // Database setup and table creation
 const db = new sqlite3.Database('./database.db', (err) => {
@@ -83,7 +92,6 @@ function createTables() {
         });
     });
 }
-
 
 app.post('/createapplication', async (req, res) => {
     const { USERID, description, category } = req.body;
@@ -191,7 +199,6 @@ app.post('/recruitapp', async (req, res) => {
 });
 
 
-
 app.post('/createrole', async (req, res) => {
     const { USERID, description, category } = req.body;
 
@@ -225,7 +232,6 @@ app.post('/createrole', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
 
 
 // Serve static files from the 'public' directory
@@ -283,7 +289,7 @@ app.post('/signup', async (req, res) => {
 
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-    const sql = `SELECT PASS_KEY FROM users WHERE USERID = ?`;
+    const sql = `SELECT PASS_KEY, USERID FROM users WHERE USERID = ?`;
     db.get(sql, [email], (err, row) => {
         if (err) {
             console.error(err.message);
@@ -292,16 +298,43 @@ app.post('/login', (req, res) => {
         if (row) {
             bcrypt.compare(password, row.PASS_KEY, (err, result) => {
                 if (result) {
-                    // Passwords match
+                    req.session.userId = row.USERID; // Store the user's ID in the session
                     res.redirect('/userdash.html'); // Redirect to user dashboard
                 } else {
-                    // Passwords don't match
-                    res.send('Invalid email or password.'); // Handle invalid login
+                    res.send('Invalid email or password.');
                 }
             });
         } else {
-            // No user found with that email
-            res.send('Invalid email or password.'); // Handle invalid login
+            res.send('Invalid email or password.');
+        }
+    });
+});
+
+app.post('/buycoins', (req, res) => {
+    console.log('Received headers:', req.headers);
+    console.log('Received body:', req.body);
+
+    if (!req.session.userId) {
+        return res.status(401).send("Not authorized. Please log in.");
+    }
+
+    if (!req.body.coins) {
+        return res.status(400).send("No coins amount provided.");
+    }
+
+    const coinsToAdd = parseInt(req.body.coins);
+    if (isNaN(coinsToAdd) || coinsToAdd <= 0) {
+        return res.status(400).send("Coins amount must be a positive number.");
+    }
+
+    const updateSql = `UPDATE users SET NUM_TOKENS = NUM_TOKENS + ? WHERE USERID = ?`;
+    db.run(updateSql, [coinsToAdd, req.session.userId], function(err) {
+        if (err) {
+            console.error('Error updating tokens:', err.message);
+            return res.status(500).send("Failed to update coins.");
+        } else {
+            console.log(`Coins updated for USERID: ${req.session.userId} | Coins Added: ${coinsToAdd}`);
+            res.send(`Coins updated successfully for ${req.session.userId}! Coins Added: ${coinsToAdd}`);
         }
     });
 });

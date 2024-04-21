@@ -299,8 +299,8 @@
 
     // Function to update values in the modal
   function updateModalValues(data) {
-    const { applications } = data;
-    if (applications.length > 0) {
+    const { roles } = data;
+    if (roles.length > 0) {
       const app = applications[0]; // Assuming only one application is returned
       document.getElementById('editRoleName').innerText = app.APPID;
       document.getElementById('editRoleDescription').innerText = app.description;
@@ -309,10 +309,10 @@
   }
 
   // Function to make the GET request
-  function fetchData(APPID) {
+  function fetchData(JOBID) {
     $.ajax({
         type: 'GET',
-        url: `/application?APPID=${APPID}`,
+        url: `/application?APPID=${JOBID}`,
         success: function(response) {
             // Handle success response
             updateModalValues(response);

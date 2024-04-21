@@ -258,7 +258,7 @@
         // Make AJAX request to the backend
         $.ajax({
           type: 'GET',
-          url: '/getuserapplications',
+          url: '/getuserroles',
           data: {}, // Replace 'your_user_id_here' with actual user ID
           success: function(response) {
             // Handle success response
@@ -269,15 +269,15 @@
   
             // Populate applications dynamically
             applications.forEach(application => {
-              const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
+              const listItem = $('<li>').addClass('list-group-item list-item').text(application.JOBID);
   
               // Adding click event listener to list item
               listItem.click(function() {
                   // Extract APPID from the text content of the clicked list item
                   const listItemText = $(this).text();
-                  const APPID = listItemText.trim(); // Remove leading/trailing spaces if any
+                  const JOBID = listItemText.trim(); // Remove leading/trailing spaces if any
                   // Fetch data and update modal
-                  fetchData(APPID);
+                  fetchData(JOBID);
                   // Show the modal
                   $('#editRoleModal').modal('show');
               });
@@ -302,7 +302,7 @@
     const { applications } = data;
     if (applications.length > 0) {
       const app = applications[0]; // Assuming only one application is returned
-      document.getElementById('editRoleName').innerText = app.APPID;
+      document.getElementById('editRoleName').innerText = app.JOBID;
       document.getElementById('editRoleDescription').innerText = app.description;
       document.getElementById('editRoleCategory').innerText = app.category;
     }

@@ -178,7 +178,6 @@
 </div>
 
 <!-- Edit Role Modal -->
-<!-- Edit Role Modal -->
 <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -258,7 +257,7 @@
         // Make AJAX request to the backend
         $.ajax({
           type: 'GET',
-          url: '/getuserapplications',
+          url: '/getuserroles',
           data: {}, // Replace 'your_user_id_here' with actual user ID
           success: function(response) {
             // Handle success response

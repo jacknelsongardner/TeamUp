@@ -186,36 +186,35 @@ app.post('/applyjob', async (req, res) => {
 });
 
 app.post('/recruitapp', async (req, res) => {
-    const { APPID, JOBID } = req.body;
+    console.log("applying for job");
+    console.log(req);
+    
+    const { JOBID } = req.body;
+    const USERID = req.session.userId;
 
     // Basic validation
-    if (!APPID || !JOBID) {
+    if (!USERID || !JOBID) {
         return res.status(400).send('Invalid input');
     }
 
     try {
         // Begin transaction
-        await db.beginTransaction();
 
-        // Check if the applicant has already been recruited for the job
-        const checkRecruitmentSql = `SELECT * FROM recruited WHERE APPID = ? AND JOBID = ?`;
-        const existingRecruitment = await db.get(checkRecruitmentSql, [APPID, JOBID]);
-        if (existingRecruitment) {
-            return res.status(400).send('Applicant has already been recruited for this job');
-        }
+        // Generate unique IDs for application and job application relation
+        const appId = req.session.selectedRecruiting; 
+        const appJobId = JOBID; // Function to generate unique ID for job application relation
 
-        // Insert recruitment into 'recruited' relation
-        const insertRecruitmentSql = `INSERT INTO recruited (APPID, JOBID) VALUES (?, ?)`;
-        await db.run(insertRecruitmentSql, [APPID, JOBID]);
+        // Insert application into 'applications' table
+        const insertApplicationSql = `INSERT OR IGNORE INTO recruit (APPID, JOBID) VALUES (?, ?)`;
+        await db.run(insertApplicationSql, [ appJobId, appId]);
 
-        // Commit transaction
-        await db.commit();
+        console.log('Application submitted successfully');
+        res.redirect('/swiperecruit.html'); // Redirect to dashboard upon successful application submission
 
-        console.log('Applicant recruited successfully');
-        res.status(200).send('Applicant recruited successfully');
+        req.session.selectedApplied = JOBID; 
     } catch (err) {
-        console.error('Error recruiting applicant:', err);
-        await db.rollback();
+        console.error('Error submitting application:', err);
+       
         res.status(500).send('Server error');
     }
 });
@@ -234,7 +233,7 @@ app.post('/createrole', async (req, res) => {
         //await.beginTransaction();
 
         // Insert application into 'applications' table
-        const insertApplicationSql = ` INSERT INTO job_postings ( APPID, description, USERID) VALUES (?, ?, ?)`;
+        const insertApplicationSql = ` INSERT INTO job_postings ( JOBID, description, USERID) VALUES (?, ?, ?)`;
         const appId = APPID; // Function to generate unique ID for application
         
         //await db.run('DELETE FROM applications;', []);
@@ -243,7 +242,7 @@ app.post('/createrole', async (req, res) => {
 
         // Insert application into 'app_category' relation
         //await db.run('DELETE FROM app_category;', []);
-        const insertAppCategorySql = `INSERT INTO job_category (APP_CAT_ID, APPID) VALUES (?, ?)`;
+        const insertAppCategorySql = `INSERT INTO job_category (JOB_CAT_ID, JOBID) VALUES (?, ?)`;
         await db.run(insertAppCategorySql, [category, appId]);
 
         // Commit transaction
@@ -413,35 +412,50 @@ app.get('/getuserteams', async (req, res) => {
 });
 
 app.get('/team', async (req, res) => {
-    const { USERID } = req.session.userId;
-    const TEAM_ID = req.session.selectedRecruiting
-    req.session.selectedCategory = "Employee"
+    const {  APPID } = req.query;
+    console.log("loading application data")
     // Basic validation
-    if (!USERID || !TEAM_ID) {
+    if ( !APPID) {
         return res.status(400).json({ error: 'Invalid input' });
     }
 
     try {
-        // Query the database to get team information for the user and team
-        const sql = `SELECT * FROM teams WHERE CREATOR_ID = ? AND TEAM_ID = ?`;
-        db.get(sql, [USERID, TEAM_ID], (err, row) => {
+        // Query the database to get applications for the user and team
+        const sql = `
+            SELECT a.JOBID, a.description, ac.JOB_CAT_ID 
+            FROM applications AS a 
+            LEFT JOIN job_category AS ac ON a.JOBID = ac.JOBID 
+            WHERE a.JOBID = ? AND a.JOBID = ?
+        `;
+        db.all(sql, [req.session.userId, APPID], (err, rows) => {
             if (err) {
-                console.error('Error retrieving user team:', err);
+                console.error('Error retrieving team user applications:', err);
                 return res.status(500).json({ error: 'Server error' });
             }
 
-            if (!row) {
-                return res.status(404).json({ error: 'Team not found for the user' });
+            // Construct JSON object with user's applications for the team
+            const applications = rows.map(row => ({
+                APPID: row.APPID,
+                description: row.description,
+                category: row.APP_CAT_ID
+            } ));
+
+            if (rows.length > 0) {
+                req.session.selectedCategory = rows[0].APP_CAT_ID;
             }
 
-            // Construct JSON object with user's team
-            const team = { TEAM_ID: row.TEAM_ID, name: row.name };
+            
+
+            // Setting selected 
+            req.session.selectedRecruiting = "APPID";
 
             // Send the JSON object as response
-            res.json({ team });
+            res.json({ applications });
+
+            
         });
     } catch (err) {
-        console.error('Error retrieving user team:', err);
+        console.error('Error retrieving team user applications:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -496,44 +510,45 @@ app.get('/application', async (req, res) => {
 });
 
 app.get('/randomapplication', async (req, res) => {
-    
-    req.session.selectedRecruiting = ""
-    
-    const { categoryID } = req.query.selectedCategory;
-
-    // Basic validation
-    if (!categoryID) {
-        return res.status(400).json({ error: 'Invalid input' });
-    }
+    // Set the selected category
+    req.session.selectedCategory = "Employee"
+    const selectedCategory = req.session.selectedCategory;
 
     try {
-        // Query the database to get a random application with the given category ID
+        // Query the database to get a random team
         const sql = `
-            SELECT a.APPID, a.description 
-            FROM applications AS a 
-            INNER JOIN app_category AS ac ON a.APPID = ac.APPID 
-            WHERE ac.APP_CAT_ID = ? 
-            ORDER BY RANDOM() 
-            LIMIT 1
+            SELECT APPID, description
+            FROM job_postings
+            WHERE APPID IN (
+                SELECT APPID
+                FROM app_category
+                WHERE APP_CAT_ID = ?
+            )
+            ORDER BY RANDOM()
+            LIMIT 1;
         `;
-        db.get(sql, [categoryID], (err, row) => {
+        db.get(sql, [selectedCategory], (err, row) => {
             if (err) {
-                console.error('Error retrieving random application:', err);
+                console.error('Error retrieving random team:', err);
                 return res.status(500).json({ error: 'Server error' });
             }
 
             if (!row) {
-                return res.status(404).json({ error: 'No application found with the given category ID' });
+                return res.status(404).json({ error: 'No teams found' });
             }
 
-            // Construct JSON object with the random application
-            const application = { APPID: row.APPID, description: row.description };
+            // Construct JSON object with the random team
+            const team = { JOBID: row.JOBID, description: row.description, category: selectedCategory };
+            
+            console.log(row.JOBID);
+            console.log(row.description)
+            console.log(team);
 
             // Send the JSON object as response
-            res.json({ application });
+            res.json({ team });
         });
     } catch (err) {
-        console.error('Error retrieving random application:', err);
+        console.error('Error retrieving random team:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });

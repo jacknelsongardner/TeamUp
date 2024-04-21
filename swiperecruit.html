@@ -37,43 +37,135 @@
         </div>
     </nav>
 
-    <div id="jobListings">
-        <!-- Job listings will be dynamically added here -->
-    </div>
+    <div id="profiles" class="container"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const jobListingsContainer = document.getElementById('jobListings');
+        // Function to create profile HTML
+        function createProfile(profile) {
+            return `
+            <div class="profile">
+                <h2>${profile.name}</h2>
+                <p>Description: ${profile.description}</p>
+                <p>Category: ${profile.category}</p>
+                <div class="profile-actions">
+                    <button onclick="applyJob('${profile.name}')">Confirm</button>
+                    <button onclick="nextProfile()">Deny</button>
+                </div>
+            </div>
+            `;
+        }
+    
+        // Function to display profiles
+        function displayProfiles() {
+            const profilesContainer = document.getElementById('profiles');
+            fetch('/randomteam')
+            .then(response => response.json())
+            .then(data => {
+    
+                const profile = {
+                    name: data.team.JOBID,
+                    description: data.team.description,
+                    category: data.team.category
+                };
+                profilesContainer.innerHTML = createProfile(profile);
+    
+                console.log(profile);
+                console.log(data);
+            })
+            .catch(error => console.error('Error fetching random team data:', error));
+        }
+    
+        function applyJob(jobName) {
+            fetch('/applyjob', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ JOBID: jobName })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Job application successful');
+                    
+                    getContactInfo();
+                    
+                    window.location.reload(); // Reload the window after successful application
+                } else {
+                    console.error('Error applying for the job');
+                    // Optional: Add logic to handle error or provide feedback to the user
+                }
+            })
+            .catch(error => console.error('Error applying for the job:', error));
+        }
+    
+        // Function to show next profile
+        function nextProfile() {
+            window.location.reload(); // Just reloads the profile for simplicity
+        }
 
-            function fetchRandomApplication() {
-                fetch('/randomapplication?categoryID=YOUR_CATEGORY_ID')
+        function getContactInfo() {
+            fetch('/checkMatch')
                 .then(response => response.json())
                 .then(data => {
-                    const { application } = data;
-                    const jobListing = `
-                        <div class="jobListing">
-                            <h2>${application.description}</h2>
-                            <div class="job-actions">
-                                <button onclick="fetchRandomApplication()">Apply</button>
-                                <button onclick="fetchRandomApplication()">Ignore</button>
-                            </div>
-                        </div>
-                    `;
-                    jobListingsContainer.innerHTML = jobListing;
+                    alert("Applied Contact Info: " + data.applied + "\nRecruited Contact Info: " + data.recruited);
                 })
-                .catch(error => console.error('Error fetching random application:', error));
-            }
-
-            fetchRandomApplication(); // Fetch and display initial random application
-
-            document.addEventListener('click', function(event) {
-                if (event.target.matches('.job-actions button')) {
-                    fetchRandomApplication(); // Fetch and display a new random application on button click
-                }
-            });
-        });
-
-        // You can keep your CSS styles here
+                .catch(error => {
+                    console.error('Error fetching contact info:', error);
+                    alert('Error fetching contact info. Please try again later.');
+                });
+        }
+    
+        displayProfiles();
     </script>
+    
+
+
+<style>
+
+#profiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+.profile {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    padding: 20px;
+    width: 300px;
+}
+.profile img {
+    border-radius: 50%;
+    margin-bottom: 10px;
+    width: 100px;
+    height: 100px;
+}
+.profile h2 {
+    margin-bottom: 5px;
+}
+.profile p {
+    margin: 0;
+}
+.profile-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+.profile-actions button {
+    background-color: #0000FF;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+.profile-actions button:hover {
+    background-color: #343a40;
+}
+</style>
 </body>
 </html>

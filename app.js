@@ -62,6 +62,7 @@ function createTables() {
         `CREATE TABLE IF NOT EXISTS job_category (
             JOB_CAT_ID TEXT,
             JOBID TEXT,
+            PRIMARY KEY (JOB_CAT_ID, APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID),
             FOREIGN KEY (JOB_CAT_ID) REFERENCES category(CAT_NAME)
         );`,
@@ -85,6 +86,7 @@ function createTables() {
         `CREATE TABLE IF NOT EXISTS contact (
             USERID TEXT,
             INFO TEXT,
+            PRIMARY KEY (USERID, INFO)
             FOREIGN KEY (USERID) REFERENCES users(USERID)
         );`,
 
@@ -220,34 +222,39 @@ app.post('/recruitapp', async (req, res) => {
 
 
 app.post('/createrole', async (req, res) => {
-    console.log("Received data:", req.body); // Log received form data
-    console.log("Session User ID:", req.session.userId); // Check session data
+    const { APPID, description, category } = req.body;
 
-    const { JOBID , description } = req.body;
-    const USERID = req.session.userId;
-
-    if (!USERID || !JOBID || !description) {
-        console.log("Validation failed", { USERID, description });
+    // Basic validation
+    if (!APPID || !description || !category) {
         return res.status(400).send('Invalid input');
     }
 
     try {
-        // Insert role into 'job_postings' table
-        const insertRoleSql = `INSERT INTO job_postings (JOBID, description, USERID) VALUES (?, ?, ?)`;
-        const newJobId = await new Promise((resolve, reject) => {
-            db.run(insertRoleSql, [JOBID, description, USERID], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(this.lastID); // this.lastID refers to the last inserted id in the database
-                }
-            });
-        });
+        // Begin transaction
+        //await.beginTransaction();
 
-        res.send("Role created successfully!");
-    } catch (error) {
-        console.error("Failed to create role:", error);
-        res.status(500).send("Failed to create role.");
+        // Insert application into 'applications' table
+        const insertApplicationSql = ` INSERT INTO job_postings ( APPID, description, USERID) VALUES (?, ?, ?)`;
+        const appId = APPID; // Function to generate unique ID for application
+        
+        //await db.run('DELETE FROM applications;', []);
+
+        await db.run(insertApplicationSql, [appId, description, req.session.userId]);
+
+        // Insert application into 'app_category' relation
+        //await db.run('DELETE FROM app_category;', []);
+        const insertAppCategorySql = `INSERT INTO job_category (APP_CAT_ID, APPID) VALUES (?, ?)`;
+        await db.run(insertAppCategorySql, [category, appId]);
+
+        // Commit transaction
+        //await db.commit();
+
+        console.log('Application added successfully');
+        res.redirect('/manageapplications.html'); // Reload page
+    } catch (err) {
+        console.error('Error adding application:', err);
+        //await db.rollback();
+        res.status(500).send('Server error');
     }
 });
 
@@ -319,21 +326,24 @@ app.post('/deleterole', async (req, res) => {
 
 app.get('/getuserroles', async (req, res) => {
     const USERID = req.session.userId;
-    console.log("Successfully loaded roles for", USERID);
+    console.log("successfully loaded job_postings for" + USERID);
     try {
+        // Query the database to get applications of the user
         const sql = `SELECT * FROM job_postings WHERE USERID = ?`;
         db.all(sql, [USERID], (err, rows) => {
             if (err) {
-                console.error('Error retrieving roles:', err);
+                console.error('Error retrieving applications:', err);
                 return res.status(500).json({ error: 'Server error' });
             }
 
-            // Correct the mapping to reflect actual columns in your database
-            const roles = rows.map(row => ({ JOBID: row.JOBID, description: row.description }));
-            res.json({ roles });
+            // Construct JSON object with applications
+            const applications = rows.map(row => ({ APPID: row.APPID, description: row.description }));
+
+            // Send the JSON object as response
+            res.json({ applications });
         });
     } catch (err) {
-        console.error('Error retrieving roles:', err);
+        console.error('Error retrieving applications:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -659,6 +669,16 @@ app.post('/signup', async (req, res) => {
                 console.error('Error inserting user into database', err.message);
                 res.status(500).send('Could not register user. Might be a duplicate USERID.');
             } else {
+
+                const insert = `INSERT INTO contact (USERID, INFO) VALUES (?, ?)`;
+                
+                db.all(insert, [USERID, USERID], (err, rows) => {
+                    if (err) {
+                        console.error('Error retrieving user teams:', err);
+                        return res.status(500).json({ error: 'Server error' });
+                }});
+
+
                 console.log(`A new row has been inserted with rowid ${this.lastID}`);
                 res.redirect('/login.html'); // Redirect to login page upon successful signup
             }
@@ -681,7 +701,17 @@ app.post('/login', (req, res) => {
             bcrypt.compare(password, row.PASS_KEY, (err, result) => {
                 if (result) {
                     req.session.userId = row.USERID; // Store the user's ID in the session
+                
+                    const insert = `INSERT OR IGNORE INTO contact (USERID, INFO) VALUES (?, ?)`;
+                    db.all(insert, [email, email], (err, rows) => {
+                        if (err) {
+                            console.error('Error retrieving user teams:', err);
+                            return res.status(500).json({ error: 'Server error' });
+                    }});
+                
                     res.redirect('/userdash.html'); // Redirect to user dashboard
+                
+                
                 } else {
                     res.send('Invalid email or password.');
                 }

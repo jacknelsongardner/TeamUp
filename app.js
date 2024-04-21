@@ -60,7 +60,7 @@ function createTables() {
         );`,
 
         `CREATE TABLE IF NOT EXISTS job_category (
-            JOB_CAT_ID TEXT PRIMARY KEY,
+            JOB_CAT_ID TEXT,
             JOBID TEXT,
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID),
             FOREIGN KEY (JOB_CAT_ID) REFERENCES category(CAT_NAME)

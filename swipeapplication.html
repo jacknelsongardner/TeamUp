@@ -15,7 +15,6 @@
         <div class="container">
             <a class="navbar-brand" href="#">
                 <img src="logo.png" alt="Logo" height="30">
-
             </a>
             <div class="container d-flex justify-content-between align-items-center" id="navbarNav">
                 <ul class="navbar-nav">
@@ -38,86 +37,74 @@
         </div>
     </nav>
 
-    <div id="profiles">
-        <div class="profile">
-            <img src="images/profile1.jpg" alt="Profile Picture">
-            <h2>John Doe</h2>
-            <p>Age: 25</p>
-            <p>Location: New York City</p>
-            <p>Skills: Web Development, JavaScript, React</p>
-            <p>Description: Passionate web developer with experience in creating dynamic and responsive websites. Proficient in JavaScript, React, and other modern web technologies. Strong problem-solving skills and a keen eye for detail. Currently seeking new opportunities to further develop and apply my skills.</p>
-            <div class="profile-actions">
-                <button onclick="nextProfile()">Confirm</button>
-                <button onclick="nextProfile()">Deny</button>
-            </div>
-        </div>
-        
-        <div class="profile">
-            <img src="images/profile2.jpg" alt="Profile Picture">
-            <h2>Jane Smith</h2>
-            <p>Age: 30</p>
-            <p>Location: San Francisco</p>
-            <p>Skills: Data Analysis, Machine Learning, Python</p>
-            <p>Description: Experienced data analyst with a background in machine learning and Python programming. Skilled in analyzing large datasets and extracting meaningful insights to drive business decisions. Proven track record of delivering actionable recommendations and implementing data-driven solutions. Seeking new challenges and opportunities to contribute to innovative projects.</p>
-            <div class="profile-actions">
-                <button onclick="nextProfile()">Confirm</button>
-                <button onclick="nextProfile()">Deny</button>
-            </div>
-        </div>
-        
-        <div class="profile">
-            <img src="images/profile3.jpg" alt="Profile Picture">
-            <h2>David Lee</h2>
-            <p>Age: 28</p>
-            <p>Location: Chicago</p>
-            <p>Skills: Marketing Strategy, Digital Marketing, SEO</p>
-            <p>Description: Results-driven marketing professional with expertise in developing and executing strategic marketing campaigns. Proficient in digital marketing channels, including SEO, PPC, and social media. Skilled in analyzing market trends and consumer behavior to optimize marketing efforts and drive business growth. Seeking a challenging role to leverage my skills and contribute to the success of a dynamic organization.</p>
-            <div class="profile-actions">
-                <button onclick="nextProfile()">Confirm</button>
-                <button onclick="nextProfile()">Deny</button>
-            </div>
-        </div>
-        
-        <div class="profile">
-            <img src="images/profile4.jpg" alt="Profile Picture">
-            <h2>Sarah Johnson</h2>
-            <p>Age: 27</p>
-            <p>Location: Los Angeles</p>
-            <p>Skills: UX/UI Design, Prototyping, Adobe XD</p>
-            <p>Description: Creative and detail-oriented UX/UI designer with a passion for creating intuitive and visually appealing digital experiences. Proficient in prototyping tools such as Adobe XD and Sketch. Experienced in conducting user research, wireframing, and designing responsive interfaces. Dedicated to delivering user-centered design solutions that enhance usability and drive engagement. Seeking exciting opportunities to collaborate on innovative projects.</p>
-            <div class="profile-actions">
-                <button onclick="nextProfile()">Confirm</button>
-                <button onclick="nextProfile()">Deny</button>
-            </div>
-        </div>
-        
-    </div>
-
+    <div id="profiles" class="container"></div>
 
     <script>
-        const profiles = document.querySelectorAll('.profile');
-        let currentIndex = 0;
-
-        function showProfile(index) {
-            profiles.forEach((profile, i) => {
-                if (i === index) {
-                    profile.style.display = 'block';
+        // Function to create profile HTML
+        function createProfile(profile) {
+            return `
+            <div class="profile">
+                <h2>${profile.name}</h2>
+                <p>Description: ${profile.description}</p>
+                <p>Category: ${profile.category}</p>
+                <div class="profile-actions">
+                    <button onclick="applyJob('${profile.name}')">Confirm</button>
+                    <button onclick="nextProfile()">Deny</button>
+                </div>
+            </div>
+            `;
+        }
+    
+        // Function to display profiles
+        function displayProfiles() {
+            const profilesContainer = document.getElementById('profiles');
+            fetch('/randomteam')
+            .then(response => response.json())
+            .then(data => {
+    
+                const profile = {
+                    name: data.team.JOBID,
+                    description: data.team.description,
+                    category: data.team.category
+                };
+                profilesContainer.innerHTML = createProfile(profile);
+    
+                console.log(profile);
+                console.log(data);
+            })
+            .catch(error => console.error('Error fetching random team data:', error));
+        }
+    
+        function applyJob(jobName) {
+            fetch('/applyjob', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ JOBID: jobName })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Job application successful');
+                    window.location.reload(); // Reload the window after successful application
                 } else {
-                    profile.style.display = 'none';
+                    console.error('Error applying for the job');
+                    // Optional: Add logic to handle error or provide feedback to the user
                 }
-            });
+            })
+            .catch(error => console.error('Error applying for the job:', error));
         }
-
+    
+        // Function to show next profile
         function nextProfile() {
-            currentIndex++;
-            if (currentIndex >= profiles.length) {
-                currentIndex = 0;
-            }
-            showProfile(currentIndex);
+            displayProfiles(); // Just reloads the profile for simplicity
         }
-
-        showProfile(currentIndex); // Show the first profile initially
+    
+        displayProfiles();
     </script>
+    
+
+
 <style>
 
 #profiles {
@@ -165,15 +152,5 @@
     background-color: #343a40;
 }
 </style>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/getCoins')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('coinCount').textContent = `Coins: ${data.coins}`;
-        })
-        .catch(error => console.error('Error fetching coin data:', error));
-    });
-</script>
 </body>
 </html>

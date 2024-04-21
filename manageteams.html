@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 
   <style>
@@ -152,8 +152,16 @@
       <div class="modal-body">
         <form id="createApplicationForm">
           <div class="form-group">
-            <label for="roleName">Role Name:</label>
+            <label for="appName">Role Name:</label>
             <input type="text" class="form-control" id="appName" name="appName">
+          </div>
+          <div class="form-group">
+            <label for="category">Category:</label>
+            <select class="form-control" id="category" name="category">
+              <option value="Employee">Employee</option>
+              <option value="Admin">Admin</option>
+              <!-- Add more options as needed -->
+            </select>
           </div>
           <div class="form-group">
             <label for="description">Description:</label>
@@ -183,6 +191,7 @@
       <div class="modal-body">
         <p><strong>Name:</strong> <span id="editRoleName"></span></p>
         <p><strong>Description:</strong> <span id="editRoleDescription"></span></p>
+        <p><strong>Category:</strong> <span id="editRoleCategory"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -212,8 +221,8 @@
         // Get form data
         var formData = {
            
-          JOBID: $('#appName').val(),
-          //category: $('#category').val(),
+          APPID: $('#appName').val(),
+          category: $('#category').val(),
           description: $('#description').val()
         };
   
@@ -224,10 +233,10 @@
           data: formData,
           success: function(response) {
             // Handle success response (if needed)
-            console.log('Role created successfully');
+            console.log('Application created successfully');
             $('#createApplicationModal').modal('hide');
 
-            window. alert("Success! Role created successfully")
+            window. alert("Success! Application created successfully")
 
             location.reload();
             // You might want to redirect the user to another page or show a success message
@@ -245,57 +254,65 @@
   <script>
     $(document).ready(function () {
       // Function to fetch user applications
-      function getUserRoles() {
+      function getUserApplications() {
         // Make AJAX request to the backend
         $.ajax({
-        type: 'GET',
-        url: '/getuserroles',
-        success: function(response) {
+          type: 'GET',
+          url: '/getuserapplications',
+          data: {}, // Replace 'your_user_id_here' with actual user ID
+          success: function(response) {
             // Handle success response
-            const roles = response.roles;
-
-            // Clear existing roles
+            const applications = response.applications;
+  
+            // Clear existing applications
             $('.list-group').empty();
-
-            // Populate roles dynamically
-            roles.forEach(role => {
-                const listItem = $('<li>').addClass('list-group-item list-item').text(role.JOBID);
-
-                // Adding click event listener to list item
-                listItem.click(function() {
-                    const JOBID = $(this).text().trim();
-                    fetchData(JOBID); // Fetch data and update modal
-                    $('#editRoleModal').modal('show');
-                });
-
-                $('.list-group').append(listItem);
+  
+            // Populate applications dynamically
+            applications.forEach(application => {
+              const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
+  
+              // Adding click event listener to list item
+              listItem.click(function() {
+                  // Extract APPID from the text content of the clicked list item
+                  const listItemText = $(this).text();
+                  const APPID = listItemText.trim(); // Remove leading/trailing spaces if any
+                  // Fetch data and update modal
+                  fetchData(APPID);
+                  // Show the modal
+                  $('#editRoleModal').modal('show');
+              });
+  
+              $('.list-group').append(listItem);
             });
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching user roles:', error);
-        }
-    });
+          },
+          error: function(xhr, status, error) {
+            // Handle error response
+            console.error('Error fetching user applications:', error);
+            // You might want to show an error message to the user
+          }
+        });
       }
   
-      // Call getUserRoles function when the page loads
-      getUserRoles();
+      // Call getUserApplications function when the page loads
+      getUserApplications();
     });
 
     // Function to update values in the modal
-    function updateModalValues(data) {
-    const { roles } = data;
-    if (roles.length > 0) {
-        const role = roles[0]; // Assuming only one role is returned
-        document.getElementById('editRoleName').innerText = role.JOBID;
-        document.getElementById('editRoleDescription').innerText = role.description;
+  function updateModalValues(data) {
+    const { applications } = data;
+    if (applications.length > 0) {
+      const app = applications[0]; // Assuming only one application is returned
+      document.getElementById('editRoleName').innerText = app.APPID;
+      document.getElementById('editRoleDescription').innerText = app.description;
+      document.getElementById('editRoleCategory').innerText = app.category;
     }
-}
+  }
 
   // Function to make the GET request
-  function fetchData(JOBID) {
+  function fetchData(APPID) {
     $.ajax({
         type: 'GET',
-        url: `/job_postings?JOBID=${JOBID}`,
+        url: `/application?APPID=${APPID}`,
         success: function(response) {
             // Handle success response
             updateModalValues(response);

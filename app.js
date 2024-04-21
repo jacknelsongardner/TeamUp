@@ -820,11 +820,40 @@ app.get('/getCoins', (req, res) => {
     });
 });
 
+
+
+// Define the POST endpoint for decrementing coins
+app.post('/decrement-coins', (req, res) => {
+    const userId = req.body.user_id;
+    if (!userId) {
+        return res.status(400).json({ error: "User ID parameter is missing." });
+    }
+
+    // Define the decrement coins function
+    const decrementCoins = () => {
+        db.get("SELECT NUM_TOKENS FROM users WHERE USERID = ?", [userId], (err, row) => {
+            if (err) {
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+            if (row && row.NUM_TOKENS > 0) {
+                db.run("UPDATE users SET NUM_TOKENS = NUM_TOKENS - 1 WHERE USERID = ?", [userId], (err) => {
+                    if (err) {
+                        return res.status(500).json({ error: "Internal Server Error" });
+                    }
+                    res.status(200).json({ message: "Coins decremented successfully." });
+                });
+            } else {
+                res.status(404).json({ message: "Coins are already zero or user not found." });
+            }
+        });
+    };
+
+    decrementCoins();
+});
+
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
-
-
 
 
 

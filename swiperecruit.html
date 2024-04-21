@@ -76,6 +76,19 @@
         }
     
         function applyJob(jobName) {
+    fetch('/decrement-coins', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id: 'user_id_here' }) // You need to provide the user ID here
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Coins decremented successfully');
+            // Update the coin count after decrementing coins
+            updateCoinCount();
+            // Proceed with job application
             fetch('/applyjob', {
                 method: 'POST',
                 headers: {
@@ -86,9 +99,7 @@
             .then(response => {
                 if (response.ok) {
                     console.log('Job application successful');
-                    
                     getContactInfo();
-                    
                     window.location.reload(); // Reload the window after successful application
                 } else {
                     console.error('Error applying for the job');
@@ -96,7 +107,26 @@
                 }
             })
             .catch(error => console.error('Error applying for the job:', error));
+        } else {
+            console.error('Error decrementing coins');
+            // Optional: Add logic to handle error or provide feedback to the user
         }
+    })
+    .catch(error => console.error('Error decrementing coins:', error));
+}
+
+function updateCoinCount() {
+    fetch('/getCoins')
+        .then(response => response.json())
+        .then(data => {
+            const coinsCount = data.coins;
+            const coinCountElement = document.getElementById('coinCount');
+            if (coinCountElement) {
+                coinCountElement.textContent = 'Coins: ' + coinsCount;
+            }
+        })
+        .catch(error => console.error('Error updating coin count:', error));
+}
     
         // Function to show next profile
         function nextProfile() {

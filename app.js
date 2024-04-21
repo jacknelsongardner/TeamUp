@@ -151,6 +151,21 @@ app.post('/createapplication', async (req, res) => {
     }
 });
 
+app.get('/getusercontacts', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).send("Not authorized");
+    }
+
+    const sql = 'SELECT USERID, INFO FROM contact WHERE USERID = ?';
+    db.all(sql, [req.session.userId], (err, rows) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send('Error fetching contact information');
+        }
+        res.json({ contacts: rows });
+    });
+});
+
 app.post('/applyjob', async (req, res) => {
     console.log("applying for job");
     console.log(req);

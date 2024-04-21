@@ -203,6 +203,13 @@
   </div>
 </div>
 
+<div class="row">
+  <div class="container mt-4">
+      <ul class="list-group" id="contacts-list-group">
+          <!-- Contact info will be loaded dynamically here -->
+      </ul>
+  </div>
+</div>
 
 <!-- JavaScript code enclosed within <script> tags -->
   
@@ -253,13 +260,46 @@
   
   <script>
 $(document).ready(function() {
+    function loadContacts() {
+        $.ajax({
+            type: 'GET',
+            url: '/getusercontacts',
+            success: function(response) {
+                const { contacts } = response;
+                const contactsListContainer = $('#contacts-list-group');
+                contactsListContainer.empty(); // Clear existing entries
+
+                contacts.forEach(contact => {
+                    const listItem = $('<li>').addClass('list-group-item list-item').text(contact.USERID + " - " + contact.INFO);
+                    const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
+                    const editButton = $('<button>').addClass('btn btn-sm btn-secondary').text('Edit');
+                    const deleteButton = $('<button>').addClass('btn btn-sm btn-danger').text('Delete');
+
+                    editDeleteButtons.append(editButton, deleteButton);
+                    listItem.append(editDeleteButtons);
+                    contactsListContainer.append(listItem);
+
+                    // Event handlers for Edit and Delete buttons
+                    editButton.on('click', function() {
+                        alert('Edit functionality to be implemented for: ' + contact.USERID);
+                    });
+                    deleteButton.on('click', function() {
+                        alert('Delete functionality to be implemented for: ' + contact.USERID);
+                    });
+                });
+            },
+            error: function() {
+                alert('Failed to load contact info');
+            }
+        });
+    }
     function loadJobs() {
         $.ajax({
             type: 'GET',
             url: '/getuserroles',
             success: function(response) {
                 const applications = response.applications;
-                const listContainer = $('.list-group');
+                const listContainer = $('.list-group').first();
                 listContainer.empty(); // Clear existing entries
 
                 applications.forEach(app => {
@@ -291,6 +331,7 @@ $(document).ready(function() {
     }
 
     loadJobs(); // Call the function to load jobs when the page is ready
+    loadContacts(); // Call the function to load contacts when the page is ready
 });
 
     // Function to update values in the modal

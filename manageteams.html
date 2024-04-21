@@ -270,7 +270,7 @@ $(document).ready(function() {
                 contactsListContainer.empty(); // Clear existing entries
 
                 contacts.forEach(contact => {
-                    const listItem = $('<li>').addClass('list-group-item list-item').text(contact.USERID + " - " + contact.INFO);
+                    const listItem = $('<li>').addClass('list-group-item list-item').text(contact.APPID + " - " + contact.INFO);
                     const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
                     const editButton = $('<button>').addClass('btn btn-sm btn-secondary').text('Edit');
                     const deleteButton = $('<button>').addClass('btn btn-sm btn-danger').text('Delete');

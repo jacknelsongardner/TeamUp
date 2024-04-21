@@ -39,11 +39,12 @@ function createTables() {
             NUM_TOKENS INTEGER,
             NAME TEXT
         );`,
-        `CREATE TABLE IF NOT EXISTS job_postings (
-            JOBID TEXT PRIMARY KEY,
-            description TEXT,
+        `CREATE TABLE IF NOT EXISTS contact (
             USERID TEXT,
-            FOREIGN KEY (USERID) REFERENCES users(USERID)
+            APPID TEXT,
+            INFO TEXT,
+            FOREIGN KEY (USERID) REFERENCES users(USERID),
+            FOREIGN KEY (APPID) REFERENCES users(USERID)
         );`,
         `CREATE TABLE IF NOT EXISTS applications (
             APPID TEXT PRIMARY KEY,
@@ -82,14 +83,7 @@ function createTables() {
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID)
         );`,
-
-        `CREATE TABLE IF NOT EXISTS contact (
-            USERID TEXT,
-            INFO TEXT,
-            PRIMARY KEY (USERID, INFO)
-            FOREIGN KEY (USERID) REFERENCES users(USERID)
-        );`,
-
+        
         'CREATE TABLE IF NOT EXISTS category (CAT_NAME TEXT PRIMARY KEY);',
 
         "INSERT OR IGNORE INTO category (CAT_NAME) VALUES ('Admin'), ('Manager'), ('Employee'), ('Webdeveloper'), ('GameDeveloper');",
@@ -166,39 +160,72 @@ app.get('/getusercontacts', (req, res) => {
     });
 });
 
-app.post('/applyjob', async (req, res) => {
-    console.log("applying for job");
-    console.log(req);
-    
+app.post('/applyjob', (req, res) => {
     const { JOBID } = req.body;
-    const USERID = req.session.userId;
+    const applicantUserId = req.session.userId;
 
-    // Basic validation
-    if (!USERID || !JOBID) {
+    console.log('Received JOBID:', JOBID);
+    console.log('Session User ID:', applicantUserId);
+
+    if (!applicantUserId || !JOBID) {
+        console.error('Invalid input: Missing JOBID or user session ID');
         return res.status(400).send('Invalid input');
     }
 
-    try {
-        // Begin transaction
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION', err => {
+            if (err) {
+                console.error('Error starting transaction:', err);
+                return res.status(500).send('Error starting transaction');
+            }
 
-        // Generate unique IDs for application and job application relation
-        const appId = req.session.selectedRecruiting; 
-        const appJobId = JOBID; // Function to generate unique ID for job application relation
+            const jobQuery = 'SELECT USERID, description FROM job_postings WHERE JOBID = ?';
+            db.get(jobQuery, [JOBID], (err, job) => {
+                if (err) {
+                    console.error('Error executing job query:', err);
+                    db.run('ROLLBACK');
+                    return res.status(500).send('Server error during job query');
+                }
 
-        // Insert application into 'applications' table
-        const insertApplicationSql = `INSERT OR IGNORE INTO apply (APPID, JOBID) VALUES (?, ?)`;
-        await db.run(insertApplicationSql, [appId, appJobId]);
+                if (!job || !job.USERID) {
+                    console.error('Job not found or missing critical data for JOBID:', JOBID);
+                    db.run('ROLLBACK');
+                    return res.status(404).send('Job not found');
+                }
 
-        console.log('Application submitted successfully');
-        res.redirect('/swipeapplication.html'); // Redirect to dashboard upon successful application submission
+                console.log('Job details:', job);
+                const jobOwnerUserId = job.USERID;
+                const jobDescription = job.description || 'No description provided';
 
-        req.session.selectedApplied = JOBID; 
-    } catch (err) {
-        console.error('Error submitting application:', err);
-       
-        res.status(500).send('Server error');
-    }
+                const contactInfo = `Applicant: ${applicantUserId}, Job Title: ${jobDescription}`;
+                console.log('Contact Info:', contactInfo);
+
+                const insertContactSql = 'INSERT INTO contact (USERID, APPID, INFO) VALUES (?, ?, ?)';
+                db.run(insertContactSql, [jobOwnerUserId, applicantUserId, contactInfo], err => {
+                    if (err) {
+                        console.error('Error inserting into contact table:', err);
+                        db.run('ROLLBACK');
+                        return res.status(500).send('Server error during contact info insertion');
+                    }
+
+                    db.run('COMMIT', err => {
+                        if (err) {
+                            console.error('Error committing transaction:', err);
+                            return res.status(500).send('Error during commit');
+                        }
+                        console.log('Transaction committed and contact info added successfully');
+                        res.send('Application successful and contact info added');
+                    });
+                });
+            });
+        });
+    });
 });
+
+
+
+
+
 
 app.post('/recruitapp', async (req, res) => {
     const { APPID, JOBID } = req.body;
@@ -593,7 +620,7 @@ app.get('/randomteam', async (req, res) => {
 
 
 
-app.get('/checkMatch', (req, res) => {
+/*app.get('/checkMatch', (req, res) => {
     console.log("checking if both matched")
 
     const jobId = req.session.selectedApplied;
@@ -654,7 +681,7 @@ app.get('/checkMatch', (req, res) => {
             }
         });
     });
-});
+});*/
 
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'
@@ -676,14 +703,14 @@ app.post('/signup', async (req, res) => {
                 res.status(500).send('Could not register user. Might be a duplicate USERID.');
             } else {
 
-                const insert = `INSERT INTO contact (USERID, INFO) VALUES (?, ?)`;
+                /*const insert = `INSERT INTO contact (USERID, INFO) VALUES (?, ?)`;
                 
                 db.all(insert, [USERID, USERID], (err, rows) => {
                     if (err) {
                         console.error('Error retrieving user teams:', err);
                         return res.status(500).json({ error: 'Server error' });
                 }});
-
+                */
 
                 console.log(`A new row has been inserted with rowid ${this.lastID}`);
                 res.redirect('/login.html'); // Redirect to login page upon successful signup
@@ -708,12 +735,12 @@ app.post('/login', (req, res) => {
                 if (result) {
                     req.session.userId = row.USERID; // Store the user's ID in the session
                 
-                    const insert = `INSERT OR IGNORE INTO contact (USERID, INFO) VALUES (?, ?)`;
+                    /*const insert = `INSERT OR IGNORE INTO contact (USERID, INFO) VALUES (?, ?)`;
                     db.all(insert, [email, email], (err, rows) => {
                         if (err) {
                             console.error('Error retrieving user teams:', err);
                             return res.status(500).json({ error: 'Server error' });
-                    }});
+                    }});*/
                 
                     res.redirect('/userdash.html'); // Redirect to user dashboard
                 

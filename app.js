@@ -91,7 +91,17 @@ function createTables() {
         'CREATE TABLE IF NOT EXISTS category (CAT_NAME TEXT PRIMARY KEY);',
 
         "INSERT OR IGNORE INTO category (CAT_NAME) VALUES ('Admin'), ('Manager'), ('Employee'), ('Webdeveloper'), ('GameDeveloper');",
-    ];
+
+       `INSERT OR IGNORE INTO job_postings (JOBID, description, USERID) VALUES
+            ('job4', 'Description for job 1', 'user1'),
+            ('job2', 'Description for job 2', 'user2'),
+            ('job3', 'Description for job 3', 'user3');`,
+
+        `INSERT OR IGNORE INTO job_category (JOB_CAT_ID, JOBID) VALUES
+            ('Employee', 'job4'),
+            ('Employee', 'job2'),
+            ('Employee', 'job3');
+            `, ];
 
     tableCreations.forEach((query) => {
         db.run(query, (err) => {
@@ -140,7 +150,11 @@ app.post('/createapplication', async (req, res) => {
 });
 
 app.post('/applyjob', async (req, res) => {
-    const { USERID, JOBID } = req.body;
+    console.log("applying for job");
+    console.log(req);
+    
+    const { JOBID } = req.body;
+    const USERID = req.session.userId;
 
     // Basic validation
     if (!USERID || !JOBID) {
@@ -149,28 +163,22 @@ app.post('/applyjob', async (req, res) => {
 
     try {
         // Begin transaction
-        await db.beginTransaction();
 
         // Generate unique IDs for application and job application relation
-        const appId = generateUniqueId(); // Function to generate unique ID for application
-        const appJobId = generateUniqueId(); // Function to generate unique ID for job application relation
+        const appId = req.session.selectedRecruiting; 
+        const appJobId = JOBID; // Function to generate unique ID for job application relation
 
         // Insert application into 'applications' table
-        const insertApplicationSql = `INSERT INTO applications (APPID, USERID) VALUES (?, ?)`;
-        await db.run(insertApplicationSql, [appId, USERID]);
-
-        // Insert job application relation
-        const insertJobApplicationSql = `INSERT INTO apply (APPID, JOBID) VALUES (?, ?)`;
-        await db.run(insertJobApplicationSql, [appId, JOBID]);
-
-        // Commit transaction
-        await db.commit();
+        const insertApplicationSql = `INSERT OR IGNORE INTO apply (APPID, JOBID) VALUES (?, ?)`;
+        await db.run(insertApplicationSql, [appId, appJobId]);
 
         console.log('Application submitted successfully');
-        res.redirect('/dashboard.html'); // Redirect to dashboard upon successful application submission
+        res.redirect('/swipeapplication.html'); // Redirect to dashboard upon successful application submission
+
+        req.session.selectedApplied = JOBID; 
     } catch (err) {
         console.error('Error submitting application:', err);
-        await db.rollback();
+       
         res.status(500).send('Server error');
     }
 });
@@ -395,8 +403,9 @@ app.get('/getuserteams', async (req, res) => {
 });
 
 app.get('/team', async (req, res) => {
-    const { USERID, TEAM_ID } = req.query;
-
+    const { USERID } = req.session.userId;
+    const TEAM_ID = req.session.selectedRecruiting
+    req.session.selectedCategory = "Employee"
     // Basic validation
     if (!USERID || !TEAM_ID) {
         return res.status(400).json({ error: 'Invalid input' });
@@ -454,10 +463,16 @@ app.get('/application', async (req, res) => {
                 APPID: row.APPID,
                 description: row.description,
                 category: row.APP_CAT_ID
-            }));
+            } ));
+
+            if (rows.length > 0) {
+                req.session.selectedCategory = rows[0].APP_CAT_ID;
+            }
+
+            
 
             // Setting selected 
-            req.session.selectedApp = "APPID";
+            req.session.selectedRecruiting = "APPID";
 
             // Send the JSON object as response
             res.json({ applications });
@@ -472,7 +487,7 @@ app.get('/application', async (req, res) => {
 
 app.get('/randomapplication', async (req, res) => {
     
-    req.session.selectedCategory = "Admin";
+    req.session.selectedRecruiting = ""
     
     const { categoryID } = req.query.selectedCategory;
 
@@ -515,15 +530,24 @@ app.get('/randomapplication', async (req, res) => {
 
 
 app.get('/randomteam', async (req, res) => {
+    // Set the selected category
+    req.session.selectedCategory = "Employee"
+    const selectedCategory = req.session.selectedCategory;
+
     try {
         // Query the database to get a random team
         const sql = `
-            SELECT * 
-            FROM teams 
-            ORDER BY RANDOM() 
-            LIMIT 1
+            SELECT JOBID, description
+            FROM job_postings
+            WHERE JOBID IN (
+                SELECT JOBID
+                FROM job_category
+                WHERE JOB_CAT_ID = ?
+            )
+            ORDER BY RANDOM()
+            LIMIT 1;
         `;
-        db.get(sql, [], (err, row) => {
+        db.get(sql, [selectedCategory], (err, row) => {
             if (err) {
                 console.error('Error retrieving random team:', err);
                 return res.status(500).json({ error: 'Server error' });
@@ -534,7 +558,11 @@ app.get('/randomteam', async (req, res) => {
             }
 
             // Construct JSON object with the random team
-            const team = { TEAM_ID: row.TEAM_ID, name: row.name };
+            const team = { JOBID: row.JOBID, description: row.description, category: selectedCategory };
+            
+            console.log(row.JOBID);
+            console.log(row.description)
+            console.log(team);
 
             // Send the JSON object as response
             res.json({ team });
@@ -545,46 +573,72 @@ app.get('/randomteam', async (req, res) => {
     }
 });
 
-app.get('/randomapplication', async (req, res) => {
-    const { categoryID } = req.query;
 
-    // Basic validation
-    if (!categoryID) {
-        return res.status(400).json({ error: 'Invalid input' });
-    }
 
-    try {
-        // Query the database to get a random application with the given category ID
-        const sql = `
-            SELECT a.APPID, a.description 
-            FROM applications AS a 
-            INNER JOIN app_category AS ac ON a.APPID = ac.APPID 
-            WHERE ac.APP_CAT_ID = ? 
-            ORDER BY RANDOM() 
-            LIMIT 1
-        `;
-        db.get(sql, [categoryID], (err, row) => {
+
+
+app.get('/checkMatch', (req, res) => {
+    console.log("checking if both matched")
+
+    const jobId = req.session.selectedApplied;
+    const appId = req.params.selectedRecruiting;
+
+    // SQL query to check if APPID and JOBID are both in apply table
+    const applyQuery = `SELECT * FROM apply WHERE JOBID = ? AND APPID = ?`;
+
+    // SQL query to check if APPID and JOBID are both in recruited table
+    const recruitedQuery = `SELECT * FROM recruited WHERE JOBID = ? AND APPID = ?`;
+
+    // Execute the queries
+    db.all(applyQuery, [jobId, appId], (err, applyRows) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send('Internal server error');
+            return;
+        }
+
+        db.all(recruitedQuery, [jobId, appId], (err, recruitedRows) => {
             if (err) {
-                console.error('Error retrieving random application:', err);
-                return res.status(500).json({ error: 'Server error' });
+                console.error(err.message);
+                res.status(500).send('Internal server error');
+                return;
             }
 
-            if (!row) {
-                return res.status(404).json({ error: 'No application found with the given category ID' });
+            // Check if both rows are found in apply and recruited tables
+            if (applyRows.length > 0 && recruitedRows.length > 0) {
+                // Assuming contact table structure: USERID TEXT, INFO TEXT
+                const contactQuery = `
+                    SELECT contact.INFO AS contactInfo
+                    FROM contact
+                    JOIN applications ON contact.USERID = applications.USERID
+                    WHERE applications.APPID = ?;
+                `;
+                db.all(contactQuery, [appId], (err, contactRows) => {
+                    if (err) {
+                        console.error(err.message);
+                        res.status(500).send('Internal server error');
+                        return;
+                    }
+
+                    // Construct JSON response with contact info
+                    const contactInfo = {
+                        applied: contactRows[0].contactInfo, // Assuming only one contact is found for applied
+                        recruited: contactRows[1].contactInfo // Assuming only one contact is found for recruited
+                    };
+
+                    res.json(contactInfo);
+                });
+            } else {
+                const contactInfo = {
+                    applied: 'Sorry, both are not matched...maybe next time!', // Assuming only one contact is found for applied
+                    recruited: 'Sorry, both are not matched...maybe next time!' // Assuming only one contact is found for recruited
+                };
+
+                res.json(contactInfo);
             }
-
-            // Construct JSON object with the random application
-            const application = { APPID: row.APPID, description: row.description };
-
-            // Send the JSON object as response
-            res.json({ application });
         });
-    } catch (err) {
-        console.error('Error retrieving random application:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
+    });
 });
-
 
 app.post('/signup', async (req, res) => {
     const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'

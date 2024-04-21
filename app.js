@@ -324,30 +324,6 @@ app.post('/deleterole', async (req, res) => {
     }
 });
 
-app.get('/getuserroles', async (req, res) => {
-    const USERID = req.session.userId;
-    console.log("successfully loaded job_postings for" + USERID);
-    try {
-        // Query the database to get applications of the user
-        const sql = `SELECT * FROM job_postings WHERE USERID = ?`;
-        db.all(sql, [USERID], (err, rows) => {
-            if (err) {
-                console.error('Error retrieving applications:', err);
-                return res.status(500).json({ error: 'Server error' });
-            }
-
-            // Construct JSON object with applications
-            const applications = rows.map(row => ({ APPID: row.APPID, description: row.description }));
-
-            // Send the JSON object as response
-            res.json({ applications });
-        });
-    } catch (err) {
-        console.error('Error retrieving applications:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname)));
 
@@ -493,6 +469,21 @@ app.get('/application', async (req, res) => {
         console.error('Error retrieving team user applications:', err);
         res.status(500).json({ error: 'Server error' });
     }
+});
+
+app.get('/getuserroles', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).send("Not authorized");
+    }
+
+    const sql = 'SELECT JOBID, description FROM job_postings WHERE USERID = ?'; // Ensure you're fetching necessary fields
+    db.all(sql, [req.session.userId], (err, rows) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send('Error fetching jobs');
+        }
+        res.json({ applications: rows });
+    });
 });
 
 app.get('/randomapplication', async (req, res) => {

@@ -233,10 +233,10 @@
           data: formData,
           success: function(response) {
             // Handle success response (if needed)
-            console.log('Application created successfully');
+            console.log('Role created successfully');
             $('#createApplicationModal').modal('hide');
 
-            window. alert("Success! Application created successfully")
+            window. alert("Success! Role created successfully")
 
             location.reload();
             // You might want to redirect the user to another page or show a success message
@@ -252,50 +252,46 @@
   </script>
   
   <script>
-    $(document).ready(function () {
-      // Function to fetch user applications
-      function getUserApplications() {
-        // Make AJAX request to the backend
+$(document).ready(function() {
+    function loadJobs() {
         $.ajax({
-          type: 'GET',
-          url: '/getuserroles',
-          data: {}, // Replace 'your_user_id_here' with actual user ID
-          success: function(response) {
-            // Handle success response
-            const applications = response.applications;
-  
-            // Clear existing applications
-            $('.list-group').empty();
-  
-            // Populate applications dynamically
-            applications.forEach(application => {
-              const listItem = $('<li>').addClass('list-group-item list-item').text(application.JOBID);
-  
-              // Adding click event listener to list item
-              listItem.click(function() {
-                  // Extract APPID from the text content of the clicked list item
-                  const listItemText = $(this).text();
-                  const JOBID = listItemText.trim(); // Remove leading/trailing spaces if any
-                  // Fetch data and update modal
-                  fetchData(JOBID);
-                  // Show the modal
-                  $('#editRoleModal').modal('show');
-              });
-  
-              $('.list-group').append(listItem);
-            });
-          },
-          error: function(xhr, status, error) {
-            // Handle error response
-            console.error('Error fetching user applications:', error);
-            // You might want to show an error message to the user
-          }
+            type: 'GET',
+            url: '/getuserroles',
+            success: function(response) {
+                const applications = response.applications;
+                const listContainer = $('.list-group');
+                listContainer.empty(); // Clear existing entries
+
+                applications.forEach(app => {
+                    const listItem = $('<li>').addClass('list-group-item list-item').text(app.JOBID + " - " + app.description);
+                    const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
+                    const editButton = $('<button>').addClass('btn btn-sm btn-secondary edit-btn').text('Edit');
+                    const deleteButton = $('<button>').addClass('btn btn-sm btn-danger delete-btn').text('Delete');
+
+                    // Append action buttons to each list item
+                    editDeleteButtons.append(editButton, deleteButton);
+                    listItem.append(editDeleteButtons);
+
+                    // Append the complete list item to the list container
+                    listContainer.append(listItem);
+
+                    // Event handlers for Edit and Delete buttons
+                    editButton.on('click', function() {
+                        alert('Edit functionality to be implemented for: ' + app.JOBID);
+                    });
+                    deleteButton.on('click', function() {
+                        alert('Delete functionality to be implemented for: ' + app.JOBID);
+                    });
+                });
+            },
+            error: function() {
+                alert('Failed to load roles');
+            }
         });
-      }
-  
-      // Call getUserApplications function when the page loads
-      getUserApplications();
-    });
+    }
+
+    loadJobs(); // Call the function to load jobs when the page is ready
+});
 
     // Function to update values in the modal
   function updateModalValues(data) {
@@ -312,7 +308,7 @@
   function fetchData(APPID) {
     $.ajax({
         type: 'GET',
-        url: `/application?APPID=${APPID}`,
+        url: `/application?JOBID=${JOBID}`,
         success: function(response) {
             // Handle success response
             updateModalValues(response);

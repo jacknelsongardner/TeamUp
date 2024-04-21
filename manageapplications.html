@@ -312,7 +312,7 @@
   function fetchData(JOBID) {
     $.ajax({
         type: 'GET',
-        url: `/application?APPID=${JOBID}`,
+        url: `/application?JOBID=${JOBID}`,
         success: function(response) {
             // Handle success response
             updateModalValues(response);

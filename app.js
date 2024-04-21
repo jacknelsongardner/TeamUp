@@ -50,8 +50,9 @@ function createTables() {
             FOREIGN KEY (USERID) REFERENCES users(USERID)
         );`,
         `CREATE TABLE IF NOT EXISTS app_category (
-            APP_CAT_ID TEXT PRIMARY KEY,
+            APP_CAT_ID TEXT,
             APPID TEXT,
+            PRIMARY KEY (APP_CAT_ID, APPID),
             FOREIGN KEY (APPID) REFERENCES applications(APPID),
             FOREIGN KEY (APP_CAT_ID) REFERENCES category(CAT_NAME)
         );`,
@@ -115,12 +116,12 @@ app.post('/createapplication', async (req, res) => {
         const insertApplicationSql = ` INSERT INTO applications ( APPID, description, USERID) VALUES (?, ?, ?)`;
         const appId = APPID; // Function to generate unique ID for application
         
-        await db.run('DELETE FROM applications;', []);
+        //await db.run('DELETE FROM applications;', []);
 
         await db.run(insertApplicationSql, [appId, description, req.session.userId]);
 
         // Insert application into 'app_category' relation
-        await db.run('DELETE FROM app_category;', []);
+        //await db.run('DELETE FROM app_category;', []);
         const insertAppCategorySql = `INSERT INTO app_category (APP_CAT_ID, APPID) VALUES (?, ?)`;
         await db.run(insertAppCategorySql, [category, appId]);
 
@@ -128,7 +129,7 @@ app.post('/createapplication', async (req, res) => {
         //await db.commit();
 
         console.log('Application added successfully');
-        //res.redirect('/login.html'); // Redirect to login page upon successful application creation
+        res.redirect('/manageapplications.html'); // Reload page
     } catch (err) {
         console.error('Error adding application:', err);
         //await db.rollback();
@@ -320,13 +321,8 @@ res.sendFile(path.join(__dirname, 'buycoins.html'));
 });
 
 app.get('/getuserapplications', async (req, res) => {
-    const { USERID } = req.query;
-
-    // Basic validation
-    if (!USERID) {
-        return res.status(400).json({ error: 'Invalid input' });
-    }
-
+    const USERID = req.session.userId;
+    console.log("successfully loaded applications for" + USERID);
     try {
         // Query the database to get applications of the user
         const sql = `SELECT * FROM applications WHERE USERID = ?`;

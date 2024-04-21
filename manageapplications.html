@@ -243,5 +243,49 @@
     });
   </script>
 
+<script>
+  // Function to fetch user applications
+  function getUserApplications() {
+    // Make AJAX request to the backend
+    $.ajax({
+      type: 'GET',
+      url: '/getuserapplications',
+      data: {}, // Replace 'your_user_id_here' with actual user ID
+      success: function(response) {
+        // Handle success response
+        const applications = response.applications;
+
+        // Clear existing applications
+        $('.list-group').empty();
+
+        // Populate applications dynamically
+        applications.forEach(application => {
+          const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
+          const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
+          const editButton = $('<button>').addClass('editRoleModal btn btn-sm btn-secondary edit-btn').attr({
+            'data-toggle': 'modal',
+            'data-target': '#editModal'
+          }).text('Edit');
+          const deleteButton = $('<button>').addClass('btn btn-sm btn-danger delete-btn').text('Delete');
+          editDeleteButtons.append(editButton, deleteButton);
+          listItem.append(editDeleteButtons);
+          $('.list-group').append(listItem);
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error response
+        console.error('Error fetching user applications:', error);
+        // You might want to show an error message to the user
+      }
+    });
+  }
+
+  // Call getUserApplications function when the page loads
+  $(document).ready(function () {
+    getUserApplications();
+  });
+</script>
+
+
 </body>
 </html>

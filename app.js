@@ -578,6 +578,8 @@ app.get('/randomteam', async (req, res) => {
 
 
 app.get('/checkMatch', (req, res) => {
+    console.log("checking if both matched")
+
     const jobId = req.session.selectedApplied;
     const appId = req.params.selectedRecruiting;
 
@@ -627,7 +629,12 @@ app.get('/checkMatch', (req, res) => {
                     res.json(contactInfo);
                 });
             } else {
-                res.send('Either APPID or JOBID is missing in either apply or recruited tables.');
+                const contactInfo = {
+                    applied: 'Sorry, both are not matched...maybe next time!', // Assuming only one contact is found for applied
+                    recruited: 'Sorry, both are not matched...maybe next time!' // Assuming only one contact is found for recruited
+                };
+
+                res.json(contactInfo);
             }
         });
     });

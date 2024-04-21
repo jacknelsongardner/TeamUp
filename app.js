@@ -220,36 +220,34 @@ app.post('/recruitapp', async (req, res) => {
 
 
 app.post('/createrole', async (req, res) => {
-    const { USERID, description, category } = req.body;
+    console.log("Received data:", req.body); // Log received form data
+    console.log("Session User ID:", req.session.userId); // Check session data
 
-    // Basic validation
-    if (!USERID || !description || !category) {
+    const { JOBID , description } = req.body;
+    const USERID = req.session.userId;
+
+    if (!USERID || !JOBID || !description) {
+        console.log("Validation failed", { USERID, description });
         return res.status(400).send('Invalid input');
     }
 
     try {
-        // Begin transaction
-        await db.beginTransaction();
-
         // Insert role into 'job_postings' table
         const insertRoleSql = `INSERT INTO job_postings (JOBID, description, USERID) VALUES (?, ?, ?)`;
-        const jobId = generateUniqueId(); // Function to generate unique ID for role
-        await db.run(insertRoleSql, [jobId, description, USERID]);
+        const newJobId = await new Promise((resolve, reject) => {
+            db.run(insertRoleSql, [JOBID, description, USERID], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.lastID); // this.lastID refers to the last inserted id in the database
+                }
+            });
+        });
 
-        // Insert role into 'job_category' relation
-        const insertJobCategorySql = `INSERT INTO job_category (JOB_CAT_ID, JOBID) VALUES (?, ?)`;
-        const jobCatId = generateUniqueId(); // Function to generate unique ID for job_category
-        await db.run(insertJobCategorySql, [jobCatId, jobId]);
-
-        // Commit transaction
-        await db.commit();
-
-        console.log('Role created successfully');
-        res.redirect('/login.html'); // Redirect to login page upon successful role creation
-    } catch (err) {
-        console.error('Error creating role:', err);
-        await db.rollback();
-        res.status(500).send('Server error');
+        res.send("Role created successfully!");
+    } catch (error) {
+        console.error("Failed to create role:", error);
+        res.status(500).send("Failed to create role.");
     }
 });
 
@@ -316,6 +314,27 @@ app.post('/deleterole', async (req, res) => {
         console.error('Error deleting role (job posting):', err);
         await db.rollback();
         res.status(500).send('Server error');
+    }
+});
+
+app.get('/getuserroles', async (req, res) => {
+    const USERID = req.session.userId;
+    console.log("Successfully loaded roles for", USERID);
+    try {
+        const sql = `SELECT * FROM job_postings WHERE USERID = ?`;
+        db.all(sql, [USERID], (err, rows) => {
+            if (err) {
+                console.error('Error retrieving roles:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            // Correct the mapping to reflect actual columns in your database
+            const roles = rows.map(row => ({ JOBID: row.JOBID, description: row.description }));
+            res.json({ roles });
+        });
+    } catch (err) {
+        console.error('Error retrieving roles:', err);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
@@ -693,6 +712,41 @@ app.post('/buycoins', (req, res) => {
             res.send(`Coins updated successfully for ${req.session.userId}! Coins Added: ${coinsToAdd}`);
         }
     });
+});
+
+app.post('/createrole', async (req, res) => {
+    const { description, category } = req.body;
+    const USERID = req.session.userId;  // Assuming USERID is stored in session after login
+
+    // Basic validation
+    if (!USERID || !description || !category) {
+        return res.status(400).send('Invalid input');
+    }
+
+    try {
+        const JOBID = uuidv4();  // Generate a unique ID for the job
+
+        // Insert role into 'job_postings' table
+        const insertRoleSql = `INSERT INTO job_postings (JOBID, description, USERID) VALUES (?, ?, ?)`;
+        await db.run(insertRoleSql, [JOBID, description, USERID], function(err) {
+            if (err) {
+                console.error('Error creating role:', err);
+                return res.status(500).send('Error creating role');
+            }
+            // Assuming JOB_CAT_ID is the same as category for simplicity
+            const insertJobCategorySql = `INSERT INTO job_category (JOB_CAT_ID, JOBID) VALUES (?, ?)`;
+            db.run(insertJobCategorySql, [category, JOBID], function(err) {
+                if (err) {
+                    console.error('Error assigning job category:', err);
+                    return res.status(500).send('Error assigning job category');
+                }
+                res.send('Role created successfully');
+            });
+        });
+    } catch (err) {
+        console.error('Server error:', err);
+        res.status(500).send('Server error');
+    }
 });
 
 app.get('/getCoins', (req, res) => {

@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
   <style>
     body {
-        background-color: rgb(206, 64, 64);
+        background-color: #d73838;
     }
 
     .list-item {
@@ -71,7 +73,6 @@
 <div class="container mt-4" style="margin-left: 150px; margin-right: 150px;">
     <div class="row">
 
-
         <div class="col-md-4 text-center">
             <div>
                 <h2 style="color: white;">Manage Roles</h2>
@@ -79,29 +80,31 @@
             </div>
 
             <div>
-                <img src="manageicon.png" alt="" style="width: 230px; margin-top: 45px;">
+                <img src="applyicon.png" alt="" style="width: 230px; margin-top: 45px;">
             </div>
 
             <div>
-                <p style="text-align: center; font-size: 15px; color: white; margin-top: 15px;">Welcome to the PowerUp Recruitment Page! This tool is designed to help you find individuals with the skills you need.</p>
+                <p style="text-align: center; font-size: 15px; color: white; margin-top: 15px;">Welcome to the PowerUp Role Page! This tool lets you make custom roles for people to apply to.</p>
             </div>
 
             <div>
-                <a href="swiperecruit.html">
+                <a href="swipeapplication.html">
                     <button type="button" class="btn btn-primary" style="margin-top: 10px">Recruit Roles</button>
                 </a>
             </div>
         </div>
 
+
         <div class="col-md-8" style="justify-content: center ;">
             
+
             <div class="row">
                 <div class="col-md-6" style="justify-content: left ;">
                     <a href="userdash.html">
-                        <button class="btn btn-light">Back</button>
+                        <button  class="btn btn-light">Back</button>
                     </a>
 
-                    <button class="btn btn-primary">Create Role</button>
+                    <button class="createApplicationBtn btn btn-primary">Create Role</button>
                 </div>
             </div>
             
@@ -110,17 +113,16 @@
                     <ul class="list-group">
 
                       <li class="list-group-item list-item">
-                        Role 1
+                        Application 1
                         <div class="edit-delete-buttons">
-                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
-                          <button class="btn btn-sm btn-danger delete-btn" >Delete</button>
-                        </div>
+                          <button class="editRoleModal btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="btn btn-sm btn-danger delete-btn" >Delete</button>                        </div>
                       </li>
 
                       <li class="list-group-item list-item">
-                        Role 2
+                        Application 2
                         <div class="edit-delete-buttons">
-                          <button class="btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
+                          <button class="editRoleModal btn btn-sm btn-secondary edit-btn" data-toggle="modal" data-target="#editModal">Edit</button>
                           <button class="btn btn-sm btn-danger delete-btn" >Delete</button>
                         </div>
                       </li>
@@ -131,107 +133,185 @@
             
         </div>
 
+        
 
     </div>
     
 </div>
 
-
-
-
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+<!-- Create Application Modal -->
+<div class="modal fade" id="createApplicationModal" tabindex="-1" role="dialog" aria-labelledby="createApplicationModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">Edit List Item</h5>
+        <h5 class="modal-title" id="createApplicationModalLabel">Create New Role</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-        <!-- Customize this part with form elements for editing list items -->
-        <label for="editItem">Edit Item:</label>
-        <input type="text" class="form-control" id="editItem">
+        <form id="createApplicationForm">
+          <div class="form-group">
+            <label for="roleName">Role Name:</label>
+            <input type="text" class="form-control" id="appName" name="appName">
+          </div>
+          <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea class="form-control" id="description" name="description"></textarea>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="submit" class="btn btn-primary" form="createApplicationForm">Create Application</button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-  $(document).ready(function () {
-    $('.list-item').click(function () {
-      // Deselect all other items
-      $('.list-item').removeClass('selected');
-      
-      // Select the clicked item
-      $(this).addClass('selected');
-    });
+<!-- Edit Role Modal -->
+<!-- Edit Role Modal -->
+<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editRoleModalLabel">Edit Role</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Name:</strong> <span id="editRoleName"></span></p>
+        <p><strong>Description:</strong> <span id="editRoleDescription"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <a href="swipeapplication.html">
+          <button type="button" class="btn btn-success" id="recruitButton">Recruit</button>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-    $('.list-item').hover(
-      function () {
-        $(this).find('.edit-delete-buttons').show();
-      },
-      function () {
-        $(this).find('.edit-delete-buttons').hide();
-      }
-    );
 
-    $('.delete-btn').click(function () {
-      $(this).closest('.list-item').remove();
-    });
+<!-- JavaScript code enclosed within <script> tags -->
+  
+  
+  <script>
+    $(document).ready(function () {
+      // Show create application modal when the "Create Application" button is clicked
+      $('.createApplicationBtn').click(function() {
+        $('#createApplicationModal').modal('show');
+      });
+  
+      // Handle form submission
+      $('#createApplicationForm').submit(function(event) {
+        event.preventDefault(); // Prevent default form submission
+  
+        // Get form data
+        var formData = {
+           
+          JOBID: $('#appName').val(),
+          //category: $('#category').val(),
+          description: $('#description').val()
+        };
+  
+        // Send POST request to the server
+        $.ajax({
+          type: 'POST',
+          url: '/createrole',
+          data: formData,
+          success: function(response) {
+            // Handle success response (if needed)
+            console.log('Role created successfully');
+            $('#createApplicationModal').modal('hide');
 
-    $('.edit-btn').click(function () {
-      // Handle edit button click, if needed
-    });
-  });
-</script>
+            window. alert("Success! Role created successfully")
 
-<script>
-  // Function to fetch user applications
-  function getUserApplications() {
-    // Make AJAX request to the backend
-    $.ajax({
-      type: 'GET',
-      url: '/getuserapplications',
-      data: { USERID: 'your_user_id_here' }, // Replace 'your_user_id_here' with actual user ID
-      success: function(response) {
-        // Handle success response
-        const applications = response.applications;
-
-        // Clear existing applications
-        $('.list-group').empty();
-
-        // Populate applications dynamically
-        applications.forEach(application => {
-          const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
-          const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
-          const editButton = $('<button>').addClass('editRoleModal btn btn-sm btn-secondary edit-btn').attr({
-            'data-toggle': 'modal',
-            'data-target': '#editModal'
-          }).text('Edit');
-          const deleteButton = $('<button>').addClass('btn btn-sm btn-danger delete-btn').text('Delete');
-          editDeleteButtons.append(editButton, deleteButton);
-          listItem.append(editDeleteButtons);
-          $('.list-group').append(listItem);
+            location.reload();
+            // You might want to redirect the user to another page or show a success message
+          },
+          error: function(xhr, status, error) {
+            // Handle error response (if needed)
+            console.error('Error creating application:', error);
+            // You might want to show an error message to the user
+          }
         });
-      },
-      error: function(xhr, status, error) {
-        // Handle error response
-        console.error('Error fetching user applications:', error);
-        // You might want to show an error message to the user
-      }
+      });
     });
-  }
+  </script>
+  
+  <script>
+    $(document).ready(function () {
+      // Function to fetch user applications
+      function getUserRoles() {
+        // Make AJAX request to the backend
+        $.ajax({
+        type: 'GET',
+        url: '/getuserroles',
+        success: function(response) {
+            // Handle success response
+            const roles = response.roles;
 
-  // Call getUserApplications function when the page loads
-  $(document).ready(function () {
-    getUserApplications();
-  });
-</script>
+            // Clear existing roles
+            $('.list-group').empty();
+
+            // Populate roles dynamically
+            roles.forEach(role => {
+                const listItem = $('<li>').addClass('list-group-item list-item').text(role.JOBID);
+
+                // Adding click event listener to list item
+                listItem.click(function() {
+                    const JOBID = $(this).text().trim();
+                    fetchData(JOBID); // Fetch data and update modal
+                    $('#editRoleModal').modal('show');
+                });
+
+                $('.list-group').append(listItem);
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching user roles:', error);
+        }
+    });
+      }
+  
+      // Call getUserRoles function when the page loads
+      getUserRoles();
+    });
+
+    // Function to update values in the modal
+    function updateModalValues(data) {
+    const { roles } = data;
+    if (roles.length > 0) {
+        const role = roles[0]; // Assuming only one role is returned
+        document.getElementById('editRoleName').innerText = role.JOBID;
+        document.getElementById('editRoleDescription').innerText = role.description;
+    }
+}
+
+  // Function to make the GET request
+  function fetchData(JOBID) {
+    $.ajax({
+        type: 'GET',
+        url: `/job_postings?JOBID=${JOBID}`,
+        success: function(response) {
+            // Handle success response
+            updateModalValues(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching data:', error);
+            // Handle error if needed
+        }
+    });
+}
+
+  
+  </script>
+  
+
+
+
 </body>
 </html>

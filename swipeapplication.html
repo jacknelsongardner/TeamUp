@@ -86,10 +86,8 @@
             .then(response => {
                 if (response.ok) {
                     console.log('Job application successful');
-                    
-                    getContactInfo();
-                    
-                    window.location.reload(); // Reload the window after successful application
+                    // Call to decrement the coins
+                    decrementCoins();
                 } else {
                     console.error('Error applying for the job');
                     // Optional: Add logic to handle error or provide feedback to the user
@@ -97,7 +95,25 @@
             })
             .catch(error => console.error('Error applying for the job:', error));
         }
-    
+
+        function decrementCoins() {
+            fetch('/decrementCoins', {
+                method: 'POST',
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Coins decremented successfully');
+                    getContactInfo();
+                    window.location.reload(); // Reload the window after successful decrement
+                } else {
+                    response.text().then(text => console.error('Failed to decrement coins:', text));
+                }
+            })
+            .catch(error => {
+                console.error('Error decrementing coins:', error);
+            });
+        }
+        
         // Function to show next profile
         function nextProfile() {
             window.location.reload(); // Just reloads the profile for simplicity

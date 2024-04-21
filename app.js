@@ -805,6 +805,26 @@ app.get('/getCoins', (req, res) => {
     });
 });
 
+app.post('/decrementCoins', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).send("Not authorized");
+    }
+
+    const decrementAmount = 1; // Change this value based on your needs
+    const sql = 'UPDATE users SET NUM_TOKENS = NUM_TOKENS - ? WHERE USERID = ? AND NUM_TOKENS >= ?';
+
+    db.run(sql, [decrementAmount, req.session.userId, decrementAmount], function(err) {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send('Error updating coins');
+        }
+        if (this.changes > 0) {
+            res.send('Coins decremented successfully');
+        } else {
+            res.status(400).send('Not enough coins or user not found');
+        }
+    });
+});
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });

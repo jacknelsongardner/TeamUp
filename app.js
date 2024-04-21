@@ -234,7 +234,7 @@ app.post('/createrole', async (req, res) => {
         //await.beginTransaction();
 
         // Insert application into 'applications' table
-        const insertApplicationSql = ` INSERT INTO job_postings ( APPID, description, USERID) VALUES (?, ?, ?)`;
+        const insertApplicationSql = ` INSERT INTO job_postings ( JOBID, description, USERID) VALUES (?, ?, ?)`;
         const appId = APPID; // Function to generate unique ID for application
         
         //await db.run('DELETE FROM applications;', []);
@@ -243,7 +243,7 @@ app.post('/createrole', async (req, res) => {
 
         // Insert application into 'app_category' relation
         //await db.run('DELETE FROM app_category;', []);
-        const insertAppCategorySql = `INSERT INTO job_category (APP_CAT_ID, APPID) VALUES (?, ?)`;
+        const insertAppCategorySql = `INSERT INTO job_category (JOB_CAT_ID, JOBID) VALUES (?, ?)`;
         await db.run(insertAppCategorySql, [category, appId]);
 
         // Commit transaction

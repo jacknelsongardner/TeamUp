@@ -169,3 +169,13 @@
 </style>
 </body>
 </html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/getCoins')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('coinCount').textContent = `Coins: ${data.coins}`;
+        })
+        .catch(error => console.error('Error fetching coin data:', error));
+    });
+    </script>

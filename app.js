@@ -100,35 +100,38 @@ function createTables() {
 }
 
 app.post('/createapplication', async (req, res) => {
-    const { USERID, description, category } = req.body;
+    const { APPID, description, category } = req.body;
 
     // Basic validation
-    if (!USERID || !description || !category) {
+    if (!APPID || !description || !category) {
         return res.status(400).send('Invalid input');
     }
 
     try {
         // Begin transaction
-        await db.beginTransaction();
+        //await.beginTransaction();
 
         // Insert application into 'applications' table
-        const insertApplicationSql = `INSERT INTO applications (APPID, description, USERID) VALUES (?, ?, ?)`;
-        const appId = generateUniqueId(); // Function to generate unique ID for application
-        await db.run(insertApplicationSql, [appId, description, USERID]);
+        const insertApplicationSql = ` INSERT INTO applications ( APPID, description, USERID) VALUES (?, ?, ?)`;
+        const appId = APPID; // Function to generate unique ID for application
+        
+        await db.run('DELETE FROM applications;', []);
+
+        await db.run(insertApplicationSql, [appId, description, req.session.userId]);
 
         // Insert application into 'app_category' relation
+        await db.run('DELETE FROM app_category;', []);
         const insertAppCategorySql = `INSERT INTO app_category (APP_CAT_ID, APPID) VALUES (?, ?)`;
-        const appCatId = generateUniqueId(); // Function to generate unique ID for app_category
-        await db.run(insertAppCategorySql, [appCatId, appId]);
+        await db.run(insertAppCategorySql, [category, appId]);
 
         // Commit transaction
-        await db.commit();
+        //await db.commit();
 
         console.log('Application added successfully');
-        res.redirect('/login.html'); // Redirect to login page upon successful application creation
+        //res.redirect('/login.html'); // Redirect to login page upon successful application creation
     } catch (err) {
         console.error('Error adding application:', err);
-        await db.rollback();
+        //await db.rollback();
         res.status(500).send('Server error');
     }
 });
@@ -571,7 +574,7 @@ app.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Insert user into database
-        const sql = `INSERT INTO users (USERID, PASS_KEY, NUM_TOKENS, NAME) VALUES (?, ?, ?, ?)`;
+        const sql = ` INSERT INTO users (USERID, PASS_KEY, NUM_TOKENS, NAME) VALUES (?, ?, ?, ?)`;
         db.run(sql, [USERID, hashedPassword, 0, ''], function(err) {
             if (err) {
                 console.error('Error inserting user into database', err.message);

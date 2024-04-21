@@ -12,6 +12,8 @@ app.use(express.static('public')); // Serve static files from 'public' directory
 app.use(bodyParser.json()); // For parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); 
 
+
+
 app.use(session({
     secret: 'your_secret_key', // This is a secret key to sign the session cookie.
     resave: false, // Avoids resaving session if unmodified.
@@ -469,7 +471,10 @@ app.get('/application', async (req, res) => {
 });
 
 app.get('/randomapplication', async (req, res) => {
-    const { categoryID } = req.query;
+    
+    req.session.selectedCategory = "Admin";
+    
+    const { categoryID } = req.query.selectedCategory;
 
     // Basic validation
     if (!categoryID) {

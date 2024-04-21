@@ -178,6 +178,7 @@
 </div>
 
 <!-- Edit Role Modal -->
+<!-- Edit Role Modal -->
 <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -188,17 +189,20 @@
         </button>
       </div>
       <div class="modal-body">
-        <!-- Customize this part with form elements for editing the role -->
-        <label for="editRoleName">New Role Name:</label>
-        <input type="text" class="form-control" id="editRoleName">
+        <p><strong>Name:</strong> <span id="editRoleName"></span></p>
+        <p><strong>Description:</strong> <span id="editRoleDescription"></span></p>
+        <p><strong>Category:</strong> <span id="editRoleCategory"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save Changes</button>
+        <a href="swipeapplication.html">
+          <button type="button" class="btn btn-success" id="recruitButton">Recruit</button>
+        </a>
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- JavaScript code enclosed within <script> tags -->
   
@@ -231,6 +235,10 @@
             // Handle success response (if needed)
             console.log('Application created successfully');
             $('#createApplicationModal').modal('hide');
+
+            window. alert("Success! Application created successfully")
+
+            location.reload();
             // You might want to redirect the user to another page or show a success message
           },
           error: function(xhr, status, error) {
@@ -242,49 +250,84 @@
       });
     });
   </script>
-
-<script>
-  // Function to fetch user applications
-  function getUserApplications() {
-    // Make AJAX request to the backend
-    $.ajax({
-      type: 'GET',
-      url: '/getuserapplications',
-      data: {}, // Replace 'your_user_id_here' with actual user ID
-      success: function(response) {
-        // Handle success response
-        const applications = response.applications;
-
-        // Clear existing applications
-        $('.list-group').empty();
-
-        // Populate applications dynamically
-        applications.forEach(application => {
-          const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
-          const editDeleteButtons = $('<div>').addClass('edit-delete-buttons');
-          const editButton = $('<button>').addClass('editRoleModal btn btn-sm btn-secondary edit-btn').attr({
-            'data-toggle': 'modal',
-            'data-target': '#editModal'
-          }).text('Edit');
-          const deleteButton = $('<button>').addClass('btn btn-sm btn-danger delete-btn').text('Delete');
-          editDeleteButtons.append(editButton, deleteButton);
-          listItem.append(editDeleteButtons);
-          $('.list-group').append(listItem);
+  
+  <script>
+    $(document).ready(function () {
+      // Function to fetch user applications
+      function getUserApplications() {
+        // Make AJAX request to the backend
+        $.ajax({
+          type: 'GET',
+          url: '/getuserapplications',
+          data: {}, // Replace 'your_user_id_here' with actual user ID
+          success: function(response) {
+            // Handle success response
+            const applications = response.applications;
+  
+            // Clear existing applications
+            $('.list-group').empty();
+  
+            // Populate applications dynamically
+            applications.forEach(application => {
+              const listItem = $('<li>').addClass('list-group-item list-item').text(application.APPID);
+  
+              // Adding click event listener to list item
+              listItem.click(function() {
+                  // Extract APPID from the text content of the clicked list item
+                  const listItemText = $(this).text();
+                  const APPID = listItemText.trim(); // Remove leading/trailing spaces if any
+                  // Fetch data and update modal
+                  fetchData(APPID);
+                  // Show the modal
+                  $('#editRoleModal').modal('show');
+              });
+  
+              $('.list-group').append(listItem);
+            });
+          },
+          error: function(xhr, status, error) {
+            // Handle error response
+            console.error('Error fetching user applications:', error);
+            // You might want to show an error message to the user
+          }
         });
-      },
-      error: function(xhr, status, error) {
-        // Handle error response
-        console.error('Error fetching user applications:', error);
-        // You might want to show an error message to the user
       }
+  
+      // Call getUserApplications function when the page loads
+      getUserApplications();
     });
+
+    // Function to update values in the modal
+  function updateModalValues(data) {
+    const { applications } = data;
+    if (applications.length > 0) {
+      const app = applications[0]; // Assuming only one application is returned
+      document.getElementById('editRoleName').innerText = app.APPID;
+      document.getElementById('editRoleDescription').innerText = app.description;
+      document.getElementById('editRoleCategory').innerText = app.category;
+    }
   }
 
-  // Call getUserApplications function when the page loads
-  $(document).ready(function () {
-    getUserApplications();
-  });
-</script>
+  // Function to make the GET request
+  function fetchData(APPID) {
+    $.ajax({
+        type: 'GET',
+        url: `/application?APPID=${APPID}`,
+        success: function(response) {
+            // Handle success response
+            updateModalValues(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching data:', error);
+            // Handle error if needed
+        }
+    });
+}
+
+  
+  </script>
+  
+
 
 
 </body>

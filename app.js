@@ -407,10 +407,10 @@ app.get('/team', async (req, res) => {
 });
 
 app.get('/application', async (req, res) => {
-    const { USERID, TEAM_ID } = req.query;
-
+    const {  APPID } = req.query;
+    console.log("loading application data")
     // Basic validation
-    if (!USERID || !TEAM_ID) {
+    if ( !APPID) {
         return res.status(400).json({ error: 'Invalid input' });
     }
 
@@ -420,9 +420,9 @@ app.get('/application', async (req, res) => {
             SELECT a.APPID, a.description, ac.APP_CAT_ID 
             FROM applications AS a 
             LEFT JOIN app_category AS ac ON a.APPID = ac.APPID 
-            WHERE a.USERID = ? AND a.TEAM_ID = ?
+            WHERE a.USERID = ? AND a.APPID = ?
         `;
-        db.all(sql, [USERID, TEAM_ID], (err, rows) => {
+        db.all(sql, [req.session.userId, APPID], (err, rows) => {
             if (err) {
                 console.error('Error retrieving team user applications:', err);
                 return res.status(500).json({ error: 'Server error' });
@@ -435,8 +435,13 @@ app.get('/application', async (req, res) => {
                 category: row.APP_CAT_ID
             }));
 
+            // Setting selected 
+            req.session.selectedApp = "APPID";
+
             // Send the JSON object as response
             res.json({ applications });
+
+            
         });
     } catch (err) {
         console.error('Error retrieving team user applications:', err);

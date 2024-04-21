@@ -38,144 +38,42 @@
     </nav>
 
     <div id="jobListings">
-        <div class="jobListing">
-            <img src="images/profile1.jpg" alt="Profile Picture">
-            <h2>Web Developer</h2>
-            <p>Location: New York City</p>
-            <p>Skills: Web Development, JavaScript, React</p>
-            <p>Description: Passionate web developer with experience in creating dynamic and responsive websites. Proficient in JavaScript, React, and other modern web technologies. Strong problem-solving skills and a keen eye for detail. Currently seeking new opportunities to further develop and apply my skills.</p>
-            <div class="job-actions">
-                <button onclick="nextJob()">Apply</button>
-                <button onclick="nextJob()">Ignore</button>
-            </div>
-        </div>
-        
-        <div class="jobListing">
-            <img src="images/profile2.jpg" alt="Profile Picture">
-            <h2>Data Analyst</h2>
-            <p>Location: San Francisco</p>
-            <p>Skills: Data Analysis, Machine Learning, Python</p>
-            <p>Description: Experienced data analyst with a background in machine learning and Python programming. Skilled in analyzing large datasets and extracting meaningful insights to drive business decisions. Proven track record of delivering actionable recommendations and implementing data-driven solutions. Seeking new challenges and opportunities to contribute to innovative projects.</p>
-            <div class="job-actions">
-                <button onclick="nextJob()">Apply</button>
-                <button onclick="nextJob()">Ignore</button>
-            </div>
-        </div>
-        
-        <div class="jobListing">
-            <img src="images/profile3.jpg" alt="Profile Picture">
-            <h2>Marketing Specialist</h2>
-            <p>Location: Chicago</p>
-            <p>Skills: Marketing Strategy, Digital Marketing, SEO</p>
-            <p>Description: Results-driven marketing professional with expertise in developing and executing strategic marketing campaigns. Proficient in digital marketing channels, including SEO, PPC, and social media. Skilled in analyzing market trends and consumer behavior to optimize marketing efforts and drive business growth. Seeking a challenging role to leverage my skills and contribute to the success of a dynamic organization.</p>
-            <div class="job-actions">
-                <button onclick="nextJob()">Apply</button>
-                <button onclick="nextJob()">Ignore</button>
-            </div>
-        </div>
-        
-        <div class="jobListing">
-            <img src="images/profile4.jpg" alt="Profile Picture">
-            <h2>UX/UI Designer</h2>
-            <p>Location: Los Angeles</p>
-            <p>Skills: UX/UI Design, Prototyping, Adobe XD</p>
-            <p>Description: Creative and detail-oriented UX/UI designer with a passion for creating intuitive and visually appealing digital experiences. Proficient in prototyping tools such as Adobe XD and Sketch. Experienced in conducting user research, wireframing, and designing responsive interfaces. Dedicated to delivering user-centered design solutions that enhance usability and drive engagement. Seeking exciting opportunities to collaborate on innovative projects.</p>
-            <div class="job-actions">
-                <button onclick="nextJob()">Apply</button>
-                <button onclick="nextJob()">Ignore</button>
-            </div>
-        </div>
-        
+        <!-- Job listings will be dynamically added here -->
     </div>
 
     <script>
-        const jobListings = document.querySelectorAll('.jobListing');
-        let currentIndex = 0;
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobListingsContainer = document.getElementById('jobListings');
 
-        function showJob(index) {
-            jobListings.forEach((job, i) => {
-                if (i === index) {
-                    job.style.display = 'block';
-                } else {
-                    job.style.display = 'none';
+            function fetchRandomApplication() {
+                fetch('/randomapplication?categoryID=YOUR_CATEGORY_ID')
+                .then(response => response.json())
+                .then(data => {
+                    const { application } = data;
+                    const jobListing = `
+                        <div class="jobListing">
+                            <h2>${application.description}</h2>
+                            <div class="job-actions">
+                                <button onclick="fetchRandomApplication()">Apply</button>
+                                <button onclick="fetchRandomApplication()">Ignore</button>
+                            </div>
+                        </div>
+                    `;
+                    jobListingsContainer.innerHTML = jobListing;
+                })
+                .catch(error => console.error('Error fetching random application:', error));
+            }
+
+            fetchRandomApplication(); // Fetch and display initial random application
+
+            document.addEventListener('click', function(event) {
+                if (event.target.matches('.job-actions button')) {
+                    fetchRandomApplication(); // Fetch and display a new random application on button click
                 }
             });
-        }
+        });
 
-        function nextJob() {
-            currentIndex++;
-            if (currentIndex >= jobListings.length) {
-                currentIndex = 0;
-            }
-            showJob(currentIndex);
-        }
-
-        showJob(currentIndex); // Show the first job initially
+        // You can keep your CSS styles here
     </script>
-
-    <style>
-        #jobListings {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .jobListing {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 10px;
-            padding: 20px;
-            width: 300px;
-            display: none;
-        }
-
-        .jobListing img {
-            border-radius: 50%;
-            margin-bottom: 10px;
-            width: 100px;
-            height: 100px;
-        }
-
-        .jobListing h2 {
-            margin-bottom: 5px;
-        }
-
-        .jobListing p {
-            margin: 0;
-        }
-
-        .job-actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-
-        .job-actions button {
-            background-color: #0000FF;
-            border: none;
-            border-radius: 5px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 10px 20px;
-            transition: background-color 0.3s;
-        }
-
-        .job-actions button:hover {
-            background-color: #343a40;
-        }
-    </style>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/getCoins')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('coinCount').textContent = `Coins: ${data.coins}`;
-        })
-        .catch(error => console.error('Error fetching coin data:', error));
-    });
-</script>
 </body>
 </html>

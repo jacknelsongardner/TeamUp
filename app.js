@@ -43,6 +43,12 @@ function createTables() {
             NUM_TOKENS INTEGER,
             NAME TEXT
         );`,
+        `CREATE TABLE IF NOT EXISTS job_postings (
+            JOBID TEXT PRIMARY KEY,
+            description TEXT,
+            USERID TEXT,
+            FOREIGN KEY (USERID) REFERENCES users(USERID)
+        );`,
         `CREATE TABLE IF NOT EXISTS contact (
             USERID TEXT,
             APPID TEXT,

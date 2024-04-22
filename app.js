@@ -33,6 +33,10 @@ const db = new sqlite3.Database('./database.db', (err) => {
 
 function createTables() {
     const tableCreations = [
+        `CREATE TABLE IF NOT EXISTS admin (
+            USERID TEXT PRIMARY KEY,
+            PASS_KEY TEXT
+        );`,
         `CREATE TABLE IF NOT EXISTS users (
             USERID TEXT PRIMARY KEY,
             PASS_KEY TEXT,
@@ -63,7 +67,7 @@ function createTables() {
         `CREATE TABLE IF NOT EXISTS job_category (
             JOB_CAT_ID TEXT,
             JOBID TEXT,
-            PRIMARY KEY (JOB_CAT_ID, APPID),
+            PRIMARY KEY (JOB_CAT_ID, JOBID),
             FOREIGN KEY (JOBID) REFERENCES job_postings(JOBID),
             FOREIGN KEY (JOB_CAT_ID) REFERENCES category(CAT_NAME)
         );`,
@@ -85,19 +89,7 @@ function createTables() {
         );`,
         
         'CREATE TABLE IF NOT EXISTS category (CAT_NAME TEXT PRIMARY KEY);',
-
-        "INSERT OR IGNORE INTO category (CAT_NAME) VALUES ('Admin'), ('Manager'), ('Employee'), ('Webdeveloper'), ('GameDeveloper');",
-
-       `INSERT OR IGNORE INTO job_postings (JOBID, description, USERID) VALUES
-            ('job4', 'Description for job 1', 'user1'),
-            ('job2', 'Description for job 2', 'user2'),
-            ('job3', 'Description for job 3', 'user3');`,
-
-        `INSERT OR IGNORE INTO job_category (JOB_CAT_ID, JOBID) VALUES
-            ('Employee', 'job4'),
-            ('Employee', 'job2'),
-            ('Employee', 'job3');
-            `, ];
+ ];
 
     tableCreations.forEach((query) => {
         db.run(query, (err) => {
@@ -722,6 +714,45 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+app.post('/signupadmin', async (req, res) => {
+    const { email: USERID, password } = req.body; // Assuming form data uses 'email' but DB uses 'USERID'
+
+    // Basic validation
+    if (!USERID || !password || password.length < 6) {
+        return res.status(400).send('Invalid input');
+    }
+
+    try {
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert user into database
+        const sql = ` INSERT INTO admin (USERID, PASS_KEY) VALUES (?, ?)`;
+        db.run(sql, [USERID, hashedPassword], function(err) {
+            if (err) {
+                console.error('Error inserting user into database', err.message);
+                res.status(500).send('Could not register user. Might be a duplicate USERID.');
+            } else {
+
+                /*const insert = `INSERT INTO contact (USERID, INFO) VALUES (?, ?)`;
+                
+                db.all(insert, [USERID, USERID], (err, rows) => {
+                    if (err) {
+                        console.error('Error retrieving user teams:', err);
+                        return res.status(500).json({ error: 'Server error' });
+                }});
+                */
+
+                console.log(`A new row has been inserted with rowid ${this.lastID}`);
+                res.redirect('/loginAdmin.html'); // Redirect to login page upon successful signup
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     const sql = `SELECT PASS_KEY, USERID FROM users WHERE USERID = ?`;
@@ -743,6 +774,39 @@ app.post('/login', (req, res) => {
                     }});*/
                 
                     res.redirect('/userdash.html'); // Redirect to user dashboard
+                
+                
+                } else {
+                    res.send('Invalid email or password.');
+                }
+            });
+        } else {
+            res.send('Invalid email or password.');
+        }
+    });
+});
+
+app.post('/loginadmin', (req, res) => {
+    const { email, password } = req.body;
+    const sql = `SELECT PASS_KEY, USERID FROM admin WHERE USERID = ?`;
+    db.get(sql, [email], (err, row) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send('Server error.');
+        }
+        if (row) {
+            bcrypt.compare(password, row.PASS_KEY, (err, result) => {
+                if (result) {
+                    req.session.userId = row.USERID; // Store the user's ID in the session
+                
+                    /*const insert = `INSERT OR IGNORE INTO contact (USERID, INFO) VALUES (?, ?)`;
+                    db.all(insert, [email, email], (err, rows) => {
+                        if (err) {
+                            console.error('Error retrieving user teams:', err);
+                            return res.status(500).json({ error: 'Server error' });
+                    }});*/
+                
+                    res.redirect('/manageAdmin.html'); // Redirect to user dashboard
                 
                 
                 } else {
@@ -858,6 +922,49 @@ app.post('/decrementCoins', (req, res) => {
         }
     });
 });
+
+
+// Get list of users
+app.get('/getallusers', (req, res) => {
+    db.all('SELECT * FROM users', (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        console.log(rows);
+        res.json(rows); // Assuming your users are returned directly as an array of objects
+    });
+});
+
+// Get list of applications
+app.get('/getallapplications', (req, res) => {
+    db.all('SELECT * FROM applications', (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        console.log(rows);
+
+        res.json(rows); // Assuming your applications are returned directly as an array of objects
+    });
+});
+
+// Define route for executing SQL commands
+app.post('/execute-sql', (req, res) => {
+    const { sql } = req.body;
+
+    if (!sql) {
+        return res.status(400).json({ error: 'SQL command is required' });
+    }
+
+    db.run(sql, function(err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'SQL command executed successfully', changes: this.changes });
+    });
+});
+
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });

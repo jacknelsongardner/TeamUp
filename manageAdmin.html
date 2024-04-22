@@ -73,9 +73,17 @@
     <div class="row">
       <div class="col-md-6">
         <div class="input-group mb-3">
-          <input type="text" class="form-control" id="commandInput" placeholder="Enter command...">
+          
           <div class="input-group-append">
-            <button class="btn btn-primary" type="button" id="executeButton">Execute</button>
+            <form id="sqlForm">
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" id="sqlInput" name="sql" placeholder="Enter SQL command...">
+                  <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Execute SQL</button>
+                  </div>
+                </div>
+              </form>
+              
           </div>
         </div>
       </div>
@@ -88,6 +96,11 @@
       <div class="col-md-6">
         <h5>Users List</h5>
         <ul id="usersList"></ul>
+      </div>
+
+      <div class="col-md-6">
+        <h5>JobPostings List</h5>
+        <ul id="jobsList"></ul>
       </div>
     </div>
   </div>
@@ -137,16 +150,28 @@
   }
   
     // Function to execute command and reload the page
-    document.getElementById('executeButton').addEventListener('click', function() {
-      // Get the command from the input field
-      const command = document.getElementById('commandInput').value.trim();
-  
-      // Perform the command execution (you may need to adjust this part)
-      // Assuming the command is sent to the server for execution
-  
-      // After executing the command, reload the page to update the lists
-      location.reload();
+    document.getElementById('sqlForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const sql = document.getElementById('sqlInput').value.trim();
+
+        // Send the SQL command via a POST request
+        fetch('/execute-sql', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sql })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // Reload the page to update the lists
+            fetchLists();
+        })
+        .catch(error => console.error('Error executing SQL:', error));
     });
+
   </script>
   
   </body>

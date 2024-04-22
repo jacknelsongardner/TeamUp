@@ -949,21 +949,35 @@ app.get('/getallapplications', (req, res) => {
     });
 });
 
+// Get list of job_postings
+app.get('/getallapplications', (req, res) => {
+    db.all('SELECT * FROM job_postings', (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        console.log(rows);
+
+        res.json(rows); // Assuming your applications are returned directly as an array of objects
+    });
+});
+
 // Define route for executing SQL commands
 app.post('/execute-sql', (req, res) => {
     const { sql } = req.body;
-
+    console.log(sql);
     if (!sql) {
-        return res.status(400).json({ error: 'SQL command is required' });
+      return res.status(400).json({ error: 'SQL command is required' });
     }
-
+  
+    // Execute the SQL command (Assuming db is your database connection)
     db.run(sql, function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'SQL command executed successfully', changes: this.changes });
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'SQL command executed successfully', changes: this.changes });
     });
-});
+  });
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

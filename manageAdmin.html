@@ -150,23 +150,23 @@
 
       // Fetch users list
       fetch('/getAllJobs')
-  .then(response => response.json())
-  .then(jobPostings => {
+        .then(response => response.json())
+        .then(jobPostings => {
 
-    console.log(jobPostings);
+            console.log(jobPostings);
 
-    // Update job postings list on the webpage
-    const jobsList = document.getElementById('jobsList');
-    jobsList.innerHTML = ''; // Clear existing list
-    for (let i = 0; i < jobPostings.length; i++) {
-      const listItem = document.createElement('li');
-      // Assuming each job posting has a property called 'title'
-      listItem.textContent = jobPostings[i].title;
-      jobsList.appendChild(listItem);
-    }
-  })
-  .catch(error => console.error('Error fetching job postings:', error));
-  }
+            // Update job postings list on the webpage
+            const jobsList = document.getElementById('jobsList');
+            jobsList.innerHTML = ''; // Clear existing list
+            for (let i = 0; i < jobPostings.length; i++) {
+            const listItem = document.createElement('li');
+            // Assuming each job posting has a property called 'title'
+            listItem.textContent = jobPostings[i].title;
+            jobsList.appendChild(listItem);
+            }
+        })
+        .catch(error => console.error('Error fetching job postings:', error));
+        }
   
     // Function to execute command and reload the page
     document.getElementById('sqlForm').addEventListener('submit', function(event) {
@@ -185,10 +185,11 @@
         .then(response => response.json())
         .then(data => {
             console.log(data);
+            window.alert(data);
             // Reload the page to update the lists
             fetchLists();
         })
-        .catch(error => console.error('Error executing SQL:', error));
+        .catch(error => console.error('Error executing SQL:', error), window.alert(error));
     });
 
   </script>

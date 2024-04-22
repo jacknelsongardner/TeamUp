@@ -950,7 +950,7 @@ app.get('/getallapplications', (req, res) => {
 });
 
 // Get list of job_postings
-app.get('/getallapplications', (req, res) => {
+app.get('/getalljobs', (req, res) => {
     db.all('SELECT * FROM job_postings', (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
